@@ -15,10 +15,15 @@ class CMMouse extends BCMonster{
     act() {
         switch (this.state) {
             case CMMouse.INIT:
+                this.r = this.r % TAU;
                 let turn = random(PI) - PI / 2;
                 this.nextR = this.r + (turn * (this.nextTurn ? 2 : 1));
                 this.intention = 100;
                 this.state = CMMouse.WAIT;
+
+                if (random(1) < 0.2) {
+                    this.nextR = atan2(HERO._y - this._y, HERO._x- this._x);
+                }
             break;
             case CMMouse.WAIT:
                 if (random(1) < 0.05) {
@@ -46,7 +51,12 @@ class CMMouse extends BCMonster{
         }
     }
     draw() {
-        arc(this._x - HERO._x + HW , this._y - HERO._y + HH, 30, 30,
+        stroke(0)
+        strokeWeight(1 * MAG.rate)
+        fill(90, 90, 90)
+        arc(this._x * MAG.rate - HERO._x * MAG.rate + HW,
+            this._y * MAG.rate - HERO._y * MAG.rate + HH,
+            30 * MAG.rate, 30 * MAG.rate,
             this.r + .5 * abs(sin(this._tick / 10)),
             this.r - .5 * abs(sin(this._tick / 10)),
             PIE);

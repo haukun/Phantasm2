@@ -50,8 +50,8 @@ class CHero extends BCObject{
       speed *= 4;
     }
 
-    let tx = HERO.x + _x * speed;
-    let ty = HERO.y + _y * speed;
-    [HERO.x, HERO.y] = CanMove(HERO.x, HERO.y, tx, ty);
+    let tx = HERO._x + _x * speed;
+    let ty = HERO._y + _y * speed;
+    [HERO._x, HERO._y] = CanMove(HERO._x, HERO._y, tx, ty);
   }
 }
