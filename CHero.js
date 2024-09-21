@@ -8,11 +8,14 @@ class CHero extends BCObject{
     this.water = 100;
     this.air = 100;
     this.earth = 100;
+
+    this.cooltime = 0;
   }
 
-  init(_x, _y) {
-    this._x = TILE_PX / 2;
-    this._y = TILE_PX / 2;
+  init(obj) {
+    this.x = TILE_PX / 2;
+    this.y = TILE_PX / 2;
+    this.r = 0;
   }
 
   //--------------------------------------------------
@@ -21,20 +24,25 @@ class CHero extends BCObject{
   draw() {
     fill(255);
 
-    let angle = atan2(mouseY - HH, mouseX - HW);
-
     arc(
       WW / 2,
       WH / 2,
       36 * MAG.rate,
       36 * MAG.rate,
-      angle + 0.5,
-      angle - 0.5,
+      this.r + 0.5,
+      this.r - 0.5,
       PIE
     );
   }
 
   act() {
+    if (this.cooltime > 0) {
+      this.cooltime--;
+    }
+
+    this.r = atan2(mouseY - HH, mouseX - HW);
+
+
     let g = GetTile(this.getMx(), this.getMy());
     switch (g.cells[this.getCx()][this.getCy()]) {
       case STAIR:
@@ -50,8 +58,6 @@ class CHero extends BCObject{
       speed *= 4;
     }
 
-    let tx = HERO._x + _x * speed;
-    let ty = HERO._y + _y * speed;
-    [HERO._x, HERO._y] = CanMove(HERO._x, HERO._y, tx, ty);
+    [HERO.x, HERO.y] = CanMove(HERO.x, HERO.y, _x * speed, _y * speed);
   }
 }

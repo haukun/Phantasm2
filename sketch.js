@@ -6,6 +6,8 @@ let CELL_PX;       // 1セルのピクセル幅
 let TILES = [];
 let HERO;
 let MONSTERS = [];
+let MISSILES = [];
+let EFFECTS = [];
 
 let MAG;
 let FRAME_RATE;
@@ -15,7 +17,7 @@ let MSG;;
 let NOW_FLOOR;
 
 let SIGHT;
-
+let INPUTS;
 //--------------------------------------------------
 //  setup
 //--------------------------------------------------
@@ -37,6 +39,7 @@ function setup() {
   MSG = new CMessage();
 
   NOW_FLOOR = 0;
+  INPUTS = {};
 
   newGame();
   init();
@@ -76,9 +79,28 @@ function init() {
   g.cells[0][0] = STAIR;
   g.redraw()
 
+
+  TILES.forEach(e => {
+    if (random(1) < 0.1) {
+      for (let cy = 0; cy < CELL_COUNT; cy++) {
+        for (let cx = 0; cx < CELL_COUNT; cx++) {
+          if (e.cells[cy][cx] == FLOOR) {
+            if (random(1) < 0.1) {
+              MONSTERS.push(new CMMouse({
+                x: e.mx * TILE_PX + cx * CELL_PX,
+                y: e.my * TILE_PX + cy * CELL_PX
+              }));
+            }
+          }
+        }
+      }
+    }
+  });
+
+  /*
   for (let r = 0; r < TAU; r += PI / 12) {
-    MONSTERS.push(new CMMouse(144 + cos(r)*150, 144 + sin(r)*150));
-  }
+    MONSTERS.push(new CMMouse({ x: 144 + cos(r) * 150, y: 144 + sin(r) * 150 }));
+  }*/
 
 
 /*
@@ -108,7 +130,6 @@ function draw() {
   drawTile()
 
   push();
-  //imageMode(CENTER)
   image(SIGHT, 0, 0, WW, WH,
     WW * 4 - HW / MAG.rate, WH * 4 - HH / MAG.rate, WW / MAG.rate, WH / MAG.rate)
   fill(0,0.01)
@@ -116,13 +137,19 @@ function draw() {
   drawingContext.clip()
   
   drawMonster();
+  drawMissile();
+  hitCheck();
+
   pop();
 
   drawHide()
+  drawEffect();
   drawMinimap()
 
   HERO.act()
   HERO.draw()
+
+  postmortem();
   
   dispatchMessage();
 
@@ -151,32 +178,77 @@ function dispatchMessage() {
 }
 
 //--------------------------------------------------
+//  postmortem
+//--------------------------------------------------
+function postmortem() {
+  MONSTERS = MONSTERS.filter(e => e.live);
+  MISSILES = MISSILES.filter(e => e.live);
+  EFFECTS = EFFECTS.filter(e => e.live);
+}
+
+//--------------------------------------------------
 //  drawDebugInfo
 //--------------------------------------------------
 function drawDebugInfo(){
   push()
+
+  noFill();
+  stroke(255);
+  textSize(12)
+  INPUTS.shift ? fill(255) : noFill();
+  rect(10, 150, 20, 10);
+  INPUTS.w ? fill(255) : noFill();
+  rect(40, 120, 10, 10);
+  INPUTS.a ? fill(255) : noFill();
+  rect(30, 130, 10, 10);
+  INPUTS.s ? fill(255) : noFill();
+  rect(40, 130, 10, 10);
+  INPUTS.d ? fill(255) : noFill();
+  rect(50, 130, 10, 10);
+  INPUTS.space ? fill(255) : noFill();
+  rect(40, 160, 30, 10);
+
+  INPUTS.wheelu ? fill(255) : noFill();
+  rect(81, 120, 4, 4)
+  INPUTS.wheeld ? fill(255) : noFill();
+  rect(81, 124, 4, 4)
+
+  INPUTS.lclick ? fill(255) : noFill();
+  arc(80, 130, 10, 20, PI , PI / 2 * 3, PIE)
+  INPUTS.rclick ? fill(255) : noFill();
+  arc(85, 130, 10, 20, PI / 2 * 3, TAU, PIE)
+  noFill()
+  arc(83, 130, 16, 20, 0, PI, PIE)
+
   stroke(0)
   fill(255)
-  textSize(20)
-  text(`Frame: ${FRAME_RATE.rate} MAX: ${FRAME_RATE.max} MIN:${FRAME_RATE.min}
-`, 30, 30)
-  text(`TILES  : ${TILES.length}`,30, 60)
-  text(`MONS   : ${MONSTERS.length}`,30, 90)
+  textSize(12)
+
+  let texts = [];
+
+  texts.push(`Frame: ${FRAME_RATE.rate} MAX: ${FRAME_RATE.max} MIN:${FRAME_RATE.min}`)
+  texts.push(`TILES  : ${ TILES.length }`);
+  texts.push(`MONSTER: ${MONSTERS.length}`);
+  texts.push(`MISSILE: ${MISSILES.length}`);
+  texts.push(`EFFECT : ${EFFECTS.length}`);
 
   let hx = HERO.getMx();
   let hy = HERO.getMy();
   let cx = HERO.getCx();
   let cy = HERO.getCy();
   
-  text(`POS:${NOW_FLOOR}F M(${hx},${hy}) C(${cx},${cy}) P(${HERO._x},${HERO._y}) D(${HERO.getDx()},${HERO.getDy()})`,
-      30, 120);
-  text(`MS:(${mouseX},${mouseY})`, 30, 150)
-  text(`MAG:(${MAG.rate})`, 30, 180)
+  texts.push(`POS:${NOW_FLOOR}F M(${hx},${hy}) C(${cx},${cy}) P(${HERO.x},${HERO.y}) D(${HERO.getDx()},${HERO.getDy()})`);
+  texts.push(`MS:(${mouseX},${mouseY})`)
+  texts.push(`MAG:(${MAG.rate})`)
+
+  for (let i = 0; i < texts.length; i++) {
+    text(texts[i], 10, i * 20 + 200)
+  }
   pop()
 }
 
 //--------------------------------------------------
-//  drawMap
+//  drawMonster
 //--------------------------------------------------
 function drawMonster(){
   MONSTERS.forEach(e => {
@@ -186,6 +258,51 @@ function drawMonster(){
   MONSTERS.forEach(e => {
     e.doDraw();
   });
+}
+
+//--------------------------------------------------
+//  drawMissile
+//--------------------------------------------------
+function drawMissile(){
+  MISSILES.forEach(e => {
+    e.doAct();
+  });
+  
+  MISSILES.forEach(e => {
+    e.doDraw();
+  });
+}
+
+//--------------------------------------------------
+//  drawEffect
+//--------------------------------------------------
+function drawEffect() {
+  push()
+  rectMode(CENTER);
+  blendMode(ADD);
+  EFFECTS.forEach(e => {
+    e.doAct();
+  });
+  
+  EFFECTS.forEach(e => {
+    e.doDraw();
+  });
+  pop()
+}
+//--------------------------------------------------
+//  hitCheck
+//--------------------------------------------------
+function hitCheck() {
+  MONSTERS.forEach(m => {
+    MISSILES.forEach(s => {
+      if (abs(m.getMx() - s.getMx()) < 1 && abs(m.getMy() - s.getMy()) < 1) {
+        if (dist(m.x, m.y, s.x, s.y) < m.l + s.l) {
+          m.hits.push(s);
+          s.hits.push(m);
+        }
+      }
+    })
+  })
 }
 
 //--------------------------------------------------
@@ -207,8 +324,8 @@ function drawTile() {
       let g = TILES.find(e=>e.mx == hx + x && e.my == hy+y)
       if(g != undefined){        
         image(g.img,
-              g.mx * TILE_PX * MAG.rate - HERO._x * MAG.rate + HW,
-              g.my * TILE_PX * MAG.rate - HERO._y * MAG.rate + HH,
+              g.mx * TILE_PX * MAG.rate - HERO.x * MAG.rate + HW,
+              g.my * TILE_PX * MAG.rate - HERO.y * MAG.rate + HH,
           int(TILE_PX * MAG.rate), int(TILE_PX * MAG.rate))
           g.look = true;
       }else{
@@ -238,8 +355,8 @@ function drawHide() {
           }
           noStroke()
           fill(0,1 - g.show/255)
-          rect( g.mx * TILE_PX * MAG.rate - HERO._x * MAG.rate + HW,
-                g.my * TILE_PX * MAG.rate - HERO._y * MAG.rate + HH,
+          rect( g.mx * TILE_PX * MAG.rate - HERO.x * MAG.rate + HW,
+                g.my * TILE_PX * MAG.rate - HERO.y * MAG.rate + HH,
                int(TILE_PX * MAG.rate), int(TILE_PX * MAG.rate))
         }
       }else{
@@ -302,8 +419,15 @@ function drawMinimap(){
 //--------------------------------------------------
 //  CanMove
 //--------------------------------------------------
-function CanMove(_x, _y, _tx, _ty) {
-  let result = false;
+const MOVED = 2;
+const HIT = 1;
+const STOP = 0;
+function CanMove(_x, _y, _ax, _ay) {
+  let _tx = _x + _ax;
+  let _ty = _y + _ay;
+
+  let resultX = false;
+  let resultY = false;
   let rx = _x;
   let ry = _y;
 
@@ -319,7 +443,7 @@ function CanMove(_x, _y, _tx, _ty) {
   if (g != undefined && _x != _tx){
     if(g.cells[cy][tcx] < _CAN_WALK){
       rx = _tx;
-      result = true;
+      resultX = true;
     }else{
       rx = (mx * TILE_PX) + (_x < _tx ? ((cx + 1) * CELL_PX - 1) : ((cx) * CELL_PX + 1))
     }
@@ -333,11 +457,17 @@ function CanMove(_x, _y, _tx, _ty) {
   if (g != undefined && _y != _ty){
     if(g.cells[tcy][cx] < _CAN_WALK){
       ry = _ty;
-      result = true;
+      resultY = true;
     }else{
       ry = (my * TILE_PX) + (_y < _ty ? ((cy + 1) * CELL_PX - 1) : ((cy) * CELL_PX + 1))
-      result = false;
     }
+  }
+
+  let result = STOP;
+  if (resultX && resultY) {
+    result = MOVED;
+  } else if (resultX || resultY) {
+    result = HIT;
   }
 
   return [rx, ry, result];

@@ -1,30 +1,34 @@
 class BCObject {
-    constructor(_x, _y) {
-        this._x = _x;
-        this._y = _y;
-        this.init(_x, _y);
+    constructor(obj) {
+        if (obj != undefined) {
+            this.x = obj.x;
+            this.y = obj.y;
+            this.l = 0;
+            this.init(obj);
+        }
     }
+    init(obj) { }
     getMx() {
-        return floor(this._x / TILE_PX);
+        return floor(this.x / TILE_PX);
     };
 
     getMy() {
-        return floor(this._y / TILE_PX);
+        return floor(this.y / TILE_PX);
     }
 
     getCx() {
-        return int((((this._x % TILE_PX) + TILE_PX) % TILE_PX) / CELL_PX);
+        return int((((this.x % TILE_PX) + TILE_PX) % TILE_PX) / CELL_PX);
     }
 
     getCy() {
-        return int((((this._y % TILE_PX) + TILE_PX) % TILE_PX) / CELL_PX);
+        return int((((this.y % TILE_PX) + TILE_PX) % TILE_PX) / CELL_PX);
     }
 
     getDx() {
-        return int(((this._x % TILE_PX) + TILE_PX) % TILE_PX);
+        return int(((this.x % TILE_PX) + TILE_PX) % TILE_PX);
     }
 
     getDy() {
-        return int(((this._y % TILE_PX) + TILE_PX) % TILE_PX);
+        return int(((this.y % TILE_PX) + TILE_PX) % TILE_PX);
     }
 }

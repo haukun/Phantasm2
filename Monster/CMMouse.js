@@ -1,18 +1,38 @@
-class CMMouse extends BCMonster{
+class CMMouse extends BCMover{
     static INIT = 0;
     static WAIT = 10;
     static WATCH = 20;
     static WALK = 30;
+    static DAMAGE = 40;
 
-    init(_x, _y) {
-        super.init(_x, _y);
+    init(obj) {
+        super.init(obj);
+        this.l = 15
         this.r = random(TAU);
         this.state = CMMouse.INIT;
         this.intention = 0
         this.nextR = 0;
         this.nextTurn = false;
+        this.life = 20;
+        this.damageTick = 0;
     }
+
+    hit(t) {
+        this.state = CMMouse.DAMAGE;
+        this.damageTick = 10;
+    }
+
     act() {
+        [this.x, this.y] = CanMove(this.x, this.y, this.forceX, this.forceY);
+        this.forceX *= 0.9
+        this.forceY *= 0.9
+        if (abs(this.forceX) < 1) {
+            this.forceX = 0;
+        }
+        if (abs(this.forceY) < 1) {
+            this.forceY = 0;
+        }
+
         switch (this.state) {
             case CMMouse.INIT:
                 this.r = this.r % TAU;
@@ -22,7 +42,7 @@ class CMMouse extends BCMonster{
                 this.state = CMMouse.WAIT;
 
                 if (random(1) < 0.2) {
-                    this.nextR = atan2(HERO._y - this._y, HERO._x- this._x);
+                    this.nextR = atan2(HERO.y - this.y, HERO.x- this.x);
                 }
             break;
             case CMMouse.WAIT:
@@ -39,26 +59,48 @@ class CMMouse extends BCMonster{
                 }
                 break;
             case CMMouse.WALK:
-                let tx = this._x + cos(this.r);
-                let ty = this._y + sin(this.r);
+                let tx = cos(this.r);
+                let ty = sin(this.r);
                 let result;
-                [this._x, this._y, result] = CanMove(this._x, this._y, tx, ty);
+                [this.x, this.y, result] = CanMove(this.x, this.y, tx, ty);
                 if (!result || (this.intention-- < 0 && random(1) < 0.02)) {
                     this.state = CMMouse.INIT;
                     this.nextTurn = !result;
                 }
                 break;
+            case CMMouse.DAMAGE:
+                if (random(1) < 0.05) {
+                    this.state = CMMouse.WATCH;
+                    this.intention = 100;
+                    this.nextR = atan2(HERO.y - this.y, HERO.x- this.x);
+                }
+                break;
+        }
+
+        if (this.life <= 0) {
+            this.live = false;
+            EFFECTS.push(new CEExplode({x:this.x, y:this.y}))
+            for (let i = 0; i < 20; i++) {
+                EFFECTS.push(new CEHit({ x: this.x, y: this.y, r:random(TAU), s: random(3)}))
+                EFFECTS.push(new CELine({ x: this.x, y: this.y, r:random(TAU), s: random(3)}))
+            }
         }
     }
     draw() {
         stroke(0)
         strokeWeight(1 * MAG.rate)
         fill(90, 90, 90)
-        arc(this._x * MAG.rate - HERO._x * MAG.rate + HW,
-            this._y * MAG.rate - HERO._y * MAG.rate + HH,
+
+        if (this.damageTick > 0 && this.tick % 2 == 0) {
+            this.damageTick--;
+            fill(0, 90, 90);
+        }
+        
+        arc(this.x * MAG.rate - HERO.x * MAG.rate + HW,
+            this.y * MAG.rate - HERO.y * MAG.rate + HH,
             30 * MAG.rate, 30 * MAG.rate,
-            this.r + .5 * abs(sin(this._tick / 10)),
-            this.r - .5 * abs(sin(this._tick / 10)),
+            this.r + .5 * abs(sin(this.tick / 10)),
+            this.r - .5 * abs(sin(this.tick / 10)),
             PIE);
     }
 }
