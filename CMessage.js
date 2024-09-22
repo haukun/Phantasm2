@@ -1,4 +1,5 @@
 const MSG_REACH_STAIR = 10;
+const MSG_DAMAGED = 20;
 
 class CMessage {
   constructor() {

@@ -23,8 +23,6 @@ class CEHit extends BCEffect {
         stroke(this.color, 70, 100, this.acc);
         strokeWeight(this.acc * MAG.rate);
 
-        translate(this.x * MAG.rate - HERO.x * MAG.rate + HW,
-            this.y * MAG.rate - HERO.y * MAG.rate + HH);
         rotate(this.angle);
         square(0, 0, this.acc * 10 * MAG.rate);
 

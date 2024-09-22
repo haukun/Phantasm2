@@ -12,11 +12,14 @@ class BCCollidableObject extends BCObject {
     this.r = obj.r;
   }
 
-  doDraw() {
+  doDraw() {    
     if (this.live) {
       let g = TILES.find((e) => e.mx == this.getMx() && e.my == this.getMy());
       if (g != undefined && g.look) {
         push();
+        rectMode(CENTER);
+        translate(this.x * MAG.rate - HERO.x * MAG.rate + HW,
+          this.y * MAG.rate - HERO.y * MAG.rate + HH)
         this.draw();
         pop();
       }

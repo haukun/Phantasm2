@@ -18,28 +18,28 @@ class CBExtractor extends BCCollidableObject{
     act() {
         let g = GetTile(this.getMx(), this.getMy());
 
-        if (g.fire == true ||
-            g.water == true ||
-            g.air == true ||
-            g.earth == true
+        if (g.fire != undefined ||
+            g.water != undefined ||
+            g.air != undefined ||
+            g.earth != undefined
         ) {
             this.state = CBExtractor.ACTIVE;
         }
 
         if (HERO.getMx() == this.getMx() && HERO.getMy() == this.getMy()) {
-            if (g.fire == true) {
+            if (g.fire != undefined) {
                 HERO.addFire(.5);
                 this.state = CBExtractor.SUPPLY;
             }
-            if (g.water == true) {
+            if (g.water != undefined) {
                 HERO.addWater(.5);
                 this.state = CBExtractor.SUPPLY;
             }
-            if (g.air == true) {
+            if (g.air != undefined) {
                 HERO.addAir(.5);
                 this.state = CBExtractor.SUPPLY;
             }
-            if (g.earth == true) {
+            if (g.earth != undefined) {
                 HERO.addEarth(.5);
                 this.state = CBExtractor.SUPPLY;
             }
@@ -69,13 +69,12 @@ class CBExtractor extends BCCollidableObject{
             fill(this.tick * 5 % 360, 100 - this.tick % 5 * 10, this.tick % 10 * 10 + 50)
         }
         
-        rect(this.x * MAG.rate - HERO.x * MAG.rate + HW,
-            this.y * MAG.rate - HERO.y * MAG.rate + HH,
+        rect(0,0,
             20 * MAG.rate,
             30 * MAG.rate);
-        line(this.x * MAG.rate - HERO.x * MAG.rate + HW,
-            this.y * MAG.rate - HERO.y * MAG.rate + HH + 30 - this.tick % 30,
-            this.x * MAG.rate - HERO.x * MAG.rate + HW + 20,
-            this.y * MAG.rate - HERO.y * MAG.rate + HH + 30 - this.tick % 30);
+        line(-10 * MAG.rate,
+            (15 - this.tick % 30) * MAG.rate,
+            10 * MAG.rate,
+            (15 - this.tick % 30) * MAG.rate);
     }
 }

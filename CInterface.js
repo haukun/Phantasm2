@@ -56,6 +56,7 @@ function input() {
             let cy = int(((oy % TILE_PX) + TILE_PX) % TILE_PX / CELL_PX)
             if (g.cells[cy][cx] == WALL) {
               g.cells[cy][cx] = FLOOR
+              HERO.addHealth(-0.1);
               for (let i = 0; i < 20; i++) {
                 EFFECTS.push(new CELine({
                   x: g.mx * TILE_PX + cx * CELL_PX + CELL_PX / 2,
@@ -68,7 +69,7 @@ function input() {
           }
           break;
         case COMMAND_EXTRACTOR:
-          if (HERO.material >= 10) {
+          if (HERO.material >= 50) {
             let ox = HERO.x + (mouseX - WW / 2) / MAG.rate
             let oy = HERO.y + (mouseY - WH / 2) / MAG.rate
             let hx = floor(ox / TILE_PX)
@@ -79,10 +80,10 @@ function input() {
               let cy = int(((oy % TILE_PX) + TILE_PX) % TILE_PX / CELL_PX)
               if (g.cells[cy][cx] == FLOOR) {
                 g.cells[cy][cx] = FIRE_EXTRACT;
-                HERO.material -= 10;
+                HERO.material -= 50;
                 BUILDS.push(new CBExtractor({
-                  x: hx * TILE_PX + cx * CELL_PX,
-                  y: hy * TILE_PX + cy * CELL_PX
+                  x: hx * TILE_PX + cx * CELL_PX + CELL_PX / 2,
+                  y: hy * TILE_PX + cy * CELL_PX + CELL_PX / 2
                 }))
                 g.redraw()
               }

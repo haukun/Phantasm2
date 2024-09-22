@@ -21,10 +21,10 @@ class CELine extends BCEffect {
         stroke(this.color, 70, 100, this.acc);
         strokeWeight(3 * this.acc * MAG.rate);
 
-        line(this.x * MAG.rate - HERO.x * MAG.rate + HW,
-            this.y * MAG.rate - HERO.y * MAG.rate + HH,
-            (this.x + cos(this.r)*this.tick) * MAG.rate - HERO.x * MAG.rate + HW,
-            (this.y + sin(this.r)*this.tick) * MAG.rate - HERO.y * MAG.rate + HH);
+        line(0,
+            0,
+            cos(this.r) * this.tick * MAG.rate,
+            sin(this.r) * this.tick * MAG.rate);
 
     }
 }

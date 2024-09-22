@@ -6,6 +6,7 @@ class CSSword extends BCCollidableObject {
         this.r = obj.r;
         this.acc = 0;
         this.first = true;
+        this.evil = false;
     }
 
     hit(t) {
@@ -47,9 +48,6 @@ class CSSword extends BCCollidableObject {
     draw() {
         stroke(60, 100, 100, this.tick / 100 * 5);
         fill(60, 80, 80, this.tick / 100 * 5)
-        translate(this.x * MAG.rate - HERO.x * MAG.rate + HW,
-            this.y * MAG.rate - HERO.y * MAG.rate + HH
-        )
         rotate(this.r);
         ellipse(0,
             0,

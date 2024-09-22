@@ -4,6 +4,7 @@ class CMMouse extends BCCollidableObject{
     static WATCH = 20;
     static WALK = 30;
     static DAMAGE = 40;
+    static CHARGE = 50;
 
     init(obj) {
         super.init(obj);
@@ -15,6 +16,7 @@ class CMMouse extends BCCollidableObject{
         this.nextTurn = false;
         this.life = 20;
         this.damageTick = 0;
+        this.chewing = 0;
     }
 
     hit(t) {
@@ -23,6 +25,8 @@ class CMMouse extends BCCollidableObject{
     }
 
     act() {
+        this.chewing++;
+
         [this.x, this.y] = CanMove(this.x, this.y, this.forceX, this.forceY);
         this.forceX *= 0.9
         this.forceY *= 0.9
@@ -59,15 +63,46 @@ class CMMouse extends BCCollidableObject{
                 }
                 break;
             case CMMouse.WALK:
-                let tx = cos(this.r);
-                let ty = sin(this.r);
-                let result;
-                [this.x, this.y, result] = CanMove(this.x, this.y, tx, ty);
-                if (!result || (this.intention-- < 0 && random(1) < 0.02)) {
-                    this.state = CMMouse.INIT;
-                    this.nextTurn = !result;
+                {
+                    let tx = cos(this.r);
+                    let ty = sin(this.r);
+                    let result;
+                    [this.x, this.y, result] = CanMove(this.x, this.y, tx, ty);
+                    if (!result || (this.intention-- < 0 && random(1) < 0.02)) {
+                        this.state = CMMouse.INIT;
+                        this.nextTurn = !result;
+                    }
+
+                    if (this.tick % 20 == 0) {
+                        MISSILES.push(new CSBody({ x: this.x, y: this.y, r: this.r, l: 15, power: 5 }))
+                    }
+            
+                    if (random(1) < 0.01) {
+                        this.state = CMMouse.CHARGE;
+                    }
                 }
                 break;
+            case CMMouse.CHARGE:
+                {
+                    this.chewing += 2;
+                    let tx = cos(this.r) * 2;
+                    let ty = sin(this.r) * 2;
+                    let result;
+                    [this.x, this.y, result] = CanMove(this.x, this.y, tx, ty);
+                    if (!result || (this.intention-- < 0 && random(1) < 0.02)) {
+                        this.state = CMMouse.INIT;
+                        this.nextTurn = !result;
+                    }
+
+                    if (this.tick % 20 == 0) {
+                        MISSILES.push(new CSBody({ x: this.x, y: this.y, r: this.r, l: 15, power: 5 }))
+                    }
+            
+                    if (random(1) < 0.1) {
+                        this.state = CMMouse.CHARGE;
+                    }
+                }
+                    break;
             case CMMouse.DAMAGE:
                 if (random(1) < 0.05) {
                     this.state = CMMouse.WATCH;
@@ -84,6 +119,11 @@ class CMMouse extends BCCollidableObject{
                 EFFECTS.push(new CEHit({ x: this.x, y: this.y, r:random(TAU), s: random(3)}))
                 EFFECTS.push(new CELine({ x: this.x, y: this.y, r:random(TAU), s: random(3)}))
             }
+
+            let rate = min(HERO.earth, 50) / 50
+            if (random(1) < (0.2 + rate * 0.8)) {
+                CHIPS.push(new CCMaterial({ x: this.x, y: this.y }))   
+            }
         }
     }
     draw() {
@@ -96,11 +136,11 @@ class CMMouse extends BCCollidableObject{
             fill(0, 90, 90);
         }
         
-        arc(this.x * MAG.rate - HERO.x * MAG.rate + HW,
-            this.y * MAG.rate - HERO.y * MAG.rate + HH,
+        arc(0,
+            0,
             30 * MAG.rate, 30 * MAG.rate,
-            this.r + .5 * abs(sin(this.tick / 10)),
-            this.r - .5 * abs(sin(this.tick / 10)),
+            this.r + .5 * abs(sin(this.chewing / 10)),
+            this.r - .5 * abs(sin(this.chewing / 10)),
             PIE);
     }
 }

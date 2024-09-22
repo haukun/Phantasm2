@@ -20,6 +20,7 @@ const ROOM_FIRE = 10;
 const ROOM_WATER = 11;
 const ROOM_AIR = 12;
 const ROOM_EARTH = 13;
+const ROOM_STAIR = 80
 const ROOM_LIMIT = 99;
 
 
@@ -65,7 +66,7 @@ class CTile{
           let wall3 = noise((_mx*TILE_PX + cx*CELL_PX)/1000 + FAR,
                             (_my*TILE_PX + cy*CELL_PX)/1000 + FAR, 19)
 
-          if(wall1%.2 > .15 || wall2%.1 > .08 || wall3 > 0.6){
+          if(wall1%.2 > .18 || wall2%.1 > .085 || wall3 > 0.6){
             type = WALL;
           }      
           if(abs(_mx) < 1 && abs(_my)< 1 ){

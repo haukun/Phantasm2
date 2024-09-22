@@ -5,14 +5,16 @@ class CHero extends BCObject{
     this.mana = 100;
     this.max_mana = 100;
     this.mana_recover_acc = 1;
-    this.fire = 100;
-    this.water = 100;
-    this.air = 100;
-    this.earth = 100;
+    this.fire = 50;
+    this.water = 50;
+    this.air = 50;
+    this.earth = 50;
     this.material = 50;
     this.max_material = 100;
     this.rune = 100;
     this.max_rune = 100;
+    this.health = 100;
+    this.max_health = 100;
 
     this.cooltime = 0;
   }
@@ -43,7 +45,7 @@ class CHero extends BCObject{
   act() {
     if (this.cooltime > 0) {
       this.cooltime--;
-      this.mana_recover_acc = 1;
+      this.mana_recover_acc = 1 + (min(this.water, 50) / 50) ** 2;
     }
 
     if (this.mana < this.max_mana) {
@@ -59,7 +61,7 @@ class CHero extends BCObject{
 
 
     let g = GetTile(this.getMx(), this.getMy());
-    switch (g.cells[this.getCx()][this.getCy()]) {
+    switch (g.cells[this.getCy()][this.getCx()]) {
       case STAIR:
         MSG.send({ msg: MSG_REACH_STAIR });
         break;
@@ -67,7 +69,7 @@ class CHero extends BCObject{
   }
 
   move(_x, _y){
-    let speed = 2;
+    let speed = 1.5 + (2 * min(HERO.air, 50) / 50);
 
     if(keyIsDown(SHIFT)){
       speed *= 4;
@@ -93,7 +95,29 @@ class CHero extends BCObject{
       if (this.earth < 0) {
         this.earth = 0;
       }
+
+      this.health -= 0.002
+      if (this.health < 0) {
+        this.health = 0;
+      }
+
+      if (this.health == 0) {
+        this.life -= 0.01
+        if (TICK % 100 == 0) {
+          MSG.send({ msg: MSG_DAMAGED });
+        }
+      } else {
+        this.life += (min(this.water, 50) / 50) ** 2 / 30
+        if (this.life >= this.max_life) {
+          this.life = this.max_life;
+        }
+      }
     }
+  }
+
+  hit(damage) {
+    this.life -= damage;
+    MSG.send({ msg: MSG_DAMAGED });
   }
 
   addFire(value) {
@@ -129,6 +153,24 @@ class CHero extends BCObject{
       this.earth = 100;
     } else if (this.earth < 0) {
       this.earth = 0;
+    }
+  }
+
+  addMaterial(value) {
+    this.material += value;
+    if (this.material > 100) {
+      this.material = 100;
+    } else if (this.material < 0) {
+      this.material = 0;
+    }
+  }
+
+  addHealth(value) {
+    this.health += value;
+    if (this.health > 100) {
+      this.health = 100;
+    } else if (this.health < 0) {
+      this.health = 0;
     }
   }
 }

@@ -14,6 +14,9 @@ class BCEffect extends BCObject{
             let g = TILES.find(e => e.mx == this.getMx() && e.my == this.getMy());
             if (g != undefined) {
                 push();
+                translate(this.x * MAG.rate - HERO.x * MAG.rate + HW,
+                    this.y * MAG.rate - HERO.y * MAG.rate + HH)
+
                 this.draw();
                 pop();
             }

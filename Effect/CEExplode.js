@@ -12,8 +12,8 @@ class CEExplode extends BCEffect {
     draw() {
         noStroke();
         fill(255, 0.4 - this.tick / 80);
-        circle(this.x * MAG.rate - HERO.x * MAG.rate + HW,
-            this.y * MAG.rate - HERO.y * MAG.rate + HH,
+        circle(0,
+            0,
             this.tick * 3 * MAG.rate);
 
     }

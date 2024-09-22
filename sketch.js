@@ -9,6 +9,7 @@ let MONSTERS = [];
 let MISSILES = [];
 let EFFECTS = [];
 let BUILDS = [];
+let CHIPS = [];
 
 let MAG;
 let FRAME_RATE;
@@ -17,12 +18,17 @@ const COMMAND_NONE = 0;
 const COMMAND_TUNNEL = 1;
 const COMMAND_EXTRACTOR = 10;
 
+let HID = new CHID();
+
+let DAMAGE_EFFECT = 0;
+
 let MSG;;
 
 let NOW_FLOOR;
 
 let SIGHT;
 let INPUTS;
+let TICK;
 //--------------------------------------------------
 //  setup
 //--------------------------------------------------
@@ -50,18 +56,10 @@ function setup() {
   newGame();
   init();
 
-  let MASK = createGraphics(WW * 8, WH * 8);
-  MASK.background(0);
-  MASK.fill(255)
-  MASK.erase()
-  MASK.circle(WW * 4, WH * 4, WW/2)
-  
-  SIGHT = createGraphics(WW * 8, WH * 8);
-  SIGHT.colorMode(HSB)
-  SIGHT.noStroke();
-  SIGHT.background(0, 0.8)
-  SIGHT = SIGHT.get();
-  SIGHT.mask(MASK.get())
+  TICK = 0;
+
+  SIGHT = createGraphics(WW, WH);  
+  SIGHT.fill(255)
 }
 
 function newGame() {
@@ -75,6 +73,10 @@ function init() {
   NOW_FLOOR++;
   noiseSeed(NOW_FLOOR);
   TILES = [];
+  MONSTERS = [];
+  BUILDS = [];
+  CHIPS = [];
+  EFFECTS = [];
 
   HERO.init();
 
@@ -84,20 +86,27 @@ function init() {
     }
   }
 
-  let g = GetTile(0,0);
-  g.cells[0][0] = STAIR;
-  g.redraw()
-
   TILES.forEach(e => {
     if (random(1) < 0.1) {
       for (let cy = 0; cy < CELL_COUNT; cy++) {
         for (let cx = 0; cx < CELL_COUNT; cx++) {
           if (e.cells[cy][cx] == FLOOR) {
             if (random(1) < 0.1) {
-              MONSTERS.push(new CMMouse({
-                x: e.mx * TILE_PX + cx * CELL_PX,
-                y: e.my * TILE_PX + cy * CELL_PX
-              }));
+              let p = int(random(2));
+              switch (p) {
+                case 0:
+                  MONSTERS.push(new CMMouse({
+                    x: e.mx * TILE_PX + cx * CELL_PX,
+                    y: e.my * TILE_PX + cy * CELL_PX
+                  }));
+                      break;
+                case 1:
+                  MONSTERS.push(new CMCannon({
+                    x: e.mx * TILE_PX + cx * CELL_PX,
+                    y: e.my * TILE_PX + cy * CELL_PX
+                  }));
+                      break;
+              }
             }
           }
         }
@@ -105,26 +114,52 @@ function init() {
     }
   });
 
+
   let normalRooms = TILES.filter(e => e.room == ROOM_NORMAL);
 
+  let g = normalRooms[floor(random(normalRooms.length))];
+  let tx = int(random(CELL_COUNT));
+  let ty = int(random(CELL_COUNT));
+  g.cells[ty][tx] = STAIR;
+  g.room = ROOM_STAIR;
+  g.stair = { x: tx, y: ty}
+  g.redraw()
+
+
+  normalRooms = TILES.filter(e => e.room == ROOM_NORMAL);
   let fire = normalRooms[floor(random(normalRooms.length))];
-  fire.fire = true;
-  fire.cells[int(random(CELL_COUNT))][int(random(CELL_COUNT))] = FIRE;
+  tx = int(random(CELL_COUNT));
+  ty = int(random(CELL_COUNT));
+  fire.fire = {x: tx, y: ty};
+  fire.cells[ty][tx] = FIRE;
+  fire.room = ROOM_FIRE;
   fire.redraw();
 
+  normalRooms = TILES.filter(e => e.room == ROOM_NORMAL);
   let water = normalRooms[floor(random(normalRooms.length))];
-  water.water = true;
-  water.cells[int(random(CELL_COUNT))][int(random(CELL_COUNT))] = WATER;
+  tx = int(random(CELL_COUNT));
+  ty = int(random(CELL_COUNT));
+  water.water = {x: tx, y: ty};;
+  water.cells[ty][tx] = WATER;
+  fire.room = ROOM_WATER
   water.redraw();
 
+  normalRooms = TILES.filter(e => e.room == ROOM_NORMAL);
   let air = normalRooms[floor(random(normalRooms.length))];
-  air.air = true;
-  air.cells[int(random(CELL_COUNT))][int(random(CELL_COUNT))] = AIR;
+  tx = int(random(CELL_COUNT));
+  ty = int(random(CELL_COUNT));
+  air.air = {x: tx, y: ty};;
+  air.cells[ty][tx] = AIR;
+  fire.room = ROOM_AIR;
   air.redraw();
 
+  normalRooms = TILES.filter(e => e.room == ROOM_NORMAL);
   let earth = normalRooms[floor(random(normalRooms.length))];
-  earth.earth = true;
-  earth.cells[int(random(CELL_COUNT))][int(random(CELL_COUNT))] = EARTH;
+  tx = int(random(CELL_COUNT));
+  ty = int(random(CELL_COUNT));
+  earth.earth = {x: tx, y: ty};;
+  earth.cells[ty][tx] = EARTH;
+  fire.room = ROOM_EARTH;
   earth.redraw();
 
   /*
@@ -152,6 +187,7 @@ function init() {
 //  draw
 //--------------------------------------------------
 function draw() {
+  TICK++;
   input();
   background(0);
   
@@ -161,14 +197,20 @@ function draw() {
   drawTile()
 
   push();
-  image(SIGHT, 0, 0, WW, WH,
-    WW * 4 - HW / MAG.rate, WH * 4 - HH / MAG.rate, WW / MAG.rate, WH / MAG.rate)
+  SIGHT.clear()
+  SIGHT.background(0, 200);
+  SIGHT.erase()
+  let sight_r = HW * MAG.rate * (0.5 + 1.5 * (min(HERO.fire, 50) / 50)**2);
+  SIGHT.circle(HW, HH, sight_r)
+
+  image(SIGHT, 0, 0)
   fill(0,0.01)
-  circle(HW,HH,HW * MAG.rate);
+  circle(HW,HH,sight_r);
   drawingContext.clip()
   
   drawMonster();
   drawMissile();
+  drawChip();
   hitCheck();
 
   pop();
@@ -183,7 +225,9 @@ function draw() {
 
   postmortem();
 
-  drawHID();
+  drawDamage();
+
+  HID.draw();
   
   dispatchMessage();
 
@@ -207,190 +251,25 @@ function dispatchMessage() {
       case MSG_REACH_STAIR:
         init();
         break;
+      case MSG_DAMAGED:
+        DAMAGE_EFFECT = 10;
+        break;
     }
   }
 }
 
 //--------------------------------------------------
-//  drawHID
+//  drawDamage
 //--------------------------------------------------
-function drawHID() {
-  push()
-
-  push()
-  if (COMMAND == COMMAND_TUNNEL) {
-    strokeWeight(2);
-    stroke(60, 90, 90)
-    fill(64)
-  } else {
-    strokeWeight(1);
-    stroke(255)
-    fill(0)
-  }
-  square(600, 850, 40)
-
-  stroke(255)
-  for (let r = 0; r < TAU; r += PI / 4) {
-    line(620 + cos(r) * 5, 870 + sin(r) * 5, 620 + cos(r) * 15, 870 + sin(r) * 15)
+function drawDamage() {
+  if (DAMAGE_EFFECT > 0) {
+    background(0, 100, 80, DAMAGE_EFFECT / 20)
+    DAMAGE_EFFECT--;
   }
 
-  if (COMMAND == COMMAND_EXTRACTOR) {
-    strokeWeight(2);
-    stroke(60, 90, 90)
-    fill(64)
-  } else {
-    strokeWeight(1);
-    stroke(255)
-    fill(0)
-  }
-  square(650, 850, 40)
 
-  fill(255);
-  rect(660, 855, 20, 30)
-  stroke(0)
-  line(660, 870, 680, 870)
-  pop()
-
-  textAlign(RIGHT);
-
-  //  life
-  stroke(120, 100, 100);
-  noFill()
-  rect(19, 799, 202, 17);
-  line(223, 816, 285, 816)
-  noStroke();
-
-  let lifeRate = HERO.life / HERO.max_life;
-  fill(120, 100, 50, .8);
-  rect(20, 800, 200 * lifeRate, 15);
-
-  noStroke()
-  fill(255, 0.8)
-  textSize(16)
-  text(ceil(HERO.life), 255, 814)
-  fill(255, 0.5)
-  text("/", 260, 814)
-  textSize(12)
-  text(ceil(HERO.max_life), 280, 814)
-
-  //  mana
-  stroke(210, 70, 100);
-  noFill()
-  rect(19, 824, 202, 17);
-  line(223, 841, 285, 841)
-  noStroke();
-
-  let manaRate = HERO.mana / HERO.max_mana;
-  fill(210, 100, 70, .8);
-  rect(20, 825, 200 * manaRate, 15);
-
-  noStroke()
-  fill(255, 0.8)
-  textSize(16)
-  text(ceil(HERO.mana), 255, 839)
-  fill(255, 0.5)
-  text("/", 260, 839)
-  textSize(12)
-  text(ceil(HERO.max_mana), 280, 839)
-
-  //  rune
-  stroke(60, 70, 100);
-  noFill()
-  rect(19, 849, 202, 7);
-  line(223, 856, 260, 856)
-  noStroke();
-
-  let runeRate = HERO.rune / HERO.max_rune;
-  fill(60, 100, 50, .8);
-  rect(20, 850, 200 * runeRate, 5);
-
-  noStroke()
-  fill(255, 0.6)
-  textSize(12)
-  text(ceil(HERO.rune), 255, 854)
-
-  //  material
-  stroke(30, 30, 100);
-  noFill()
-  rect(19, 864, 202, 7);
-  line(223, 871, 260, 871)
-  noStroke();
-
-  let materialRate = HERO.material / HERO.max_material;
-  fill(30, 30, 50, .8);
-  rect(20, 865, 200 * materialRate, 5);
-
-  noStroke()
-  fill(255, 0.6)
-  textSize(12)
-  text(ceil(HERO.material), 255, 869)
-
-  //  fire
-  stroke(0, 100, 100);
-  noFill()
-  rect(1379, 814, 202, 12);
-  line(1350, 826, 1379, 826)
-  noStroke();
-
-  let fireRate = HERO.fire / 100;
-  fill(0, 70, 100, .8);
-  rect(1380, 815, 200 * fireRate, 10);
-
-  noStroke()
-  fill(255, 0.5)
-  textSize(12)
-  text(ceil(HERO.fire), 1375, 824)
-
-  //  water
-  stroke(210, 100, 100);
-  noFill()
-  rect(1379, 829, 202, 12);
-  line(1350, 840, 1379, 840)
-  noStroke();
-
-  let waterRate = HERO.water / 100;
-  fill(210, 70, 100, .8);
-  rect(1380, 830, 200 * waterRate, 10);
-
-  noStroke()
-  fill(255, 0.5)
-  textSize(12)
-  text(ceil(HERO.water), 1375, 839)
-
-  //  air
-  stroke(150, 100, 100);
-  noFill()
-  rect(1379, 844, 202, 12);
-  line(1350, 855, 1379, 855)
-  noStroke();
-
-  let airRate = HERO.air / 100;
-  fill(150, 70, 100, .8);
-  rect(1380, 845, 200 * airRate, 10);
-
-  noStroke()
-  fill(255, 0.5)
-  textSize(12)
-  text(ceil(HERO.air), 1375, 854)
-
-  //  earth
-  stroke(60, 100, 100);
-  noFill()
-  rect(1379, 859, 202, 12);
-  line(1350, 870, 1379, 870)
-  noStroke();
-
-  let earthRate = HERO.earth / 100;
-  fill(60, 70, 100, .8);
-  rect(1380, 860, 200 * earthRate, 10);
-
-  noStroke()
-  fill(255, 0.5)
-  textSize(12)
-  text(ceil(HERO.earth), 1375, 869)
-
-  pop()
 }
+
 
 //--------------------------------------------------
 //  postmortem
@@ -400,6 +279,7 @@ function postmortem() {
   MISSILES = MISSILES.filter(e => e.live);
   EFFECTS = EFFECTS.filter(e => e.live);
   BUILDS = BUILDS.filter(e => e.live);
+  CHIPS = CHIPS.filter(e => e.live);
 }
 
 //--------------------------------------------------
@@ -446,7 +326,8 @@ function drawDebugInfo(){
   texts.push(`TILES  : ${ TILES.length }`);
   texts.push(`MONSTER: ${MONSTERS.length}`);
   texts.push(`MISSILE: ${MISSILES.length}`);
-  texts.push(`BUILDS : ${BUILDS.length}`);
+  texts.push(`BUILD  : ${BUILDS.length}`);
+  texts.push(`CHIP   : ${CHIPS.length}`);
   texts.push(`EFFECT : ${EFFECTS.length}`);
 
   let hx = HERO.getMx();
@@ -491,6 +372,19 @@ function drawMissile(){
 }
 
 //--------------------------------------------------
+//  drawChip
+//--------------------------------------------------
+function drawChip(){
+  CHIPS.forEach(e => {
+    e.doAct();
+  });
+  
+  CHIPS.forEach(e => {
+    e.doDraw();
+  });
+}
+
+//--------------------------------------------------
 //  drawBuild
 //--------------------------------------------------
 function drawBuild(){
@@ -525,13 +419,33 @@ function drawEffect() {
 function hitCheck() {
   MONSTERS.forEach(m => {
     MISSILES.forEach(s => {
-      if (abs(m.getMx() - s.getMx()) < 1 && abs(m.getMy() - s.getMy()) < 1) {
-        if (dist(m.x, m.y, s.x, s.y) < m.l + s.l) {
-          m.hits.push(s);
-          s.hits.push(m);
+      if (s.evil == false) {
+        if (abs(m.getMx() - s.getMx()) < 1 && abs(m.getMy() - s.getMy()) < 1) {
+          if (dist(m.x, m.y, s.x, s.y) < m.l + s.l) {
+            m.hits.push(s);
+            s.hits.push(m);
+          }
         }
       }
     })
+  })
+
+  MISSILES.forEach(c => {
+    if (c.evil == true) {
+      if (abs(HERO.getMx() - c.getMx()) < 1 && abs(HERO.getMy() - c.getMy()) < 1) {
+        if (dist(HERO.x, HERO.y, c.x, c.y) < 10 + c.l) {
+          c.hits.push(HERO);
+        }
+      }
+    }
+  })
+
+  CHIPS.forEach(c => {
+    if (abs(HERO.getMx() - c.getMx()) < 1 && abs(HERO.getMy() - c.getMy()) < 1) {
+      if (dist(HERO.x, HERO.y, c.x, c.y) < 10 + c.l) {
+        c.hits.push(HERO);
+      }
+    }
   })
 }
 
@@ -575,12 +489,14 @@ function drawHide() {
   let hx = HERO.getMx();
   let hy = HERO.getMy();
   
+  let sight = HERO.fire >= 50 ? 3 : 2;
+
   for(let y=-vh/2-1;y<vh/2 + 1;y++){
     for(let x=-vw/2-1;x<vw/2 + 1;x++){
       let g = TILES.find(e=>e.mx == hx + x && e.my == hy+y)
       if(g != undefined){        
         if(g.show<255){
-          if(dist(hx,hy,g.mx,g.my)<2 || g.show>0){
+          if(dist(hx,hy,g.mx,g.my)<sight || g.show>0){
             g.show+=3;
           }
           noStroke()
@@ -624,7 +540,51 @@ function drawMinimap(){
         image(g.img,
               x*18 + wx + vw/2*18 - int(HERO.getDx()/16),
               y*18 + vh/2*18 + wy - int(HERO.getDy()/16),
-             18, 18)
+          18, 18)
+        
+        if (g.show > 0) {
+          if (g.stair) {
+            strokeWeight(2);
+            stroke(0, 0, 50 + int(frameCount / 30) % 2 * 30)
+            fill(0, 0, 100 - int(frameCount / 30) % 2 * 30)
+            square(x * 18 + wx + vw / 2 * 18 - int(HERO.getDx() / 16) + g.stair.x * 2,
+              y * 18 + vh / 2 * 18 + wy - int(HERO.getDy() / 16) + g.stair.y * 2,
+              6);
+          }
+
+          if (g.fire) {
+            strokeWeight(2);
+            stroke(0, 50 + int(frameCount / 30) % 2 * 30, 50)
+            fill(0, 50 + int(frameCount / 30) % 2 * 30, 90)
+            circle(x * 18 + wx + vw / 2 * 18 - int(HERO.getDx() / 16) + g.fire.x * 2,
+              y * 18 + vh / 2 * 18 + wy - int(HERO.getDy() / 16) + g.fire.y * 2,
+              6);
+          }
+          if (g.water) {
+            strokeWeight(2);
+            stroke(240, 50 + int(frameCount / 30) % 2 * 30, 50)
+            fill(240, 50 + int(frameCount / 30) % 2 * 30, 90)
+            circle(x * 18 + wx + vw / 2 * 18 - int(HERO.getDx() / 16) + g.water.x * 2,
+              y * 18 + vh / 2 * 18 + wy - int(HERO.getDy() / 16) + g.water.y * 2,
+              6);
+          }
+          if (g.air) {
+            strokeWeight(2);
+            stroke(150, 50 + int(frameCount / 30) % 2 * 30, 50)
+            fill(150, 50 + int(frameCount / 30) % 2 * 30, 90)
+            circle(x * 18 + wx + vw / 2 * 18 - int(HERO.getDx() / 16) + g.air.x * 2,
+              y * 18 + vh / 2 * 18 + wy - int(HERO.getDy() / 16) + g.air.y * 2,
+              6);
+          }
+          if (g.earth) {
+            strokeWeight(2);
+            stroke(30, 50 + int(frameCount / 30) % 2 * 30, 50)
+            fill(30, 50 + int(frameCount / 30) % 2 * 30, 90)
+            circle(x * 18 + wx + vw / 2 * 18 - int(HERO.getDx() / 16) + g.earth.x * 2,
+              y * 18 + vh / 2 * 18 + wy - int(HERO.getDy() / 16) + g.earth.y * 2,
+              6);
+          }
+        }
         if(g.show<255){
           noStroke()
           fill(0,1 - g.show/255)
