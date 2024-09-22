@@ -1,4 +1,4 @@
-class CSSword extends BCMover {
+class CSSword extends BCCollidableObject {
 
     init(obj) {
         super.init(obj);

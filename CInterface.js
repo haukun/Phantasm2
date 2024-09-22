@@ -32,28 +32,68 @@ function input() {
   if (mouseIsPressed) {
     if (mouseButton == LEFT) {
       INPUTS.lclick = true;
+
+      COMMAND = COMMAND_NONE;
+      if (mouseX > 600 && mouseX < 640 && mouseY > 850 && mouseY < 890) {
+        COMMAND = COMMAND_TUNNEL;
+      }else if (mouseX > 650 && mouseX < 690 && mouseY > 850 && mouseY < 890) {
+        COMMAND = COMMAND_EXTRACTOR;
+      }
     }else if (mouseButton == RIGHT) {
       INPUTS.rclick = true;
-      let ox = HERO.x + (mouseX - WW / 2) / MAG.rate
-      let oy = HERO.y + (mouseY - WH / 2) / MAG.rate
-      let hx = floor(ox / TILE_PX)
-      let hy = floor(oy / TILE_PX)
-      let g = TILES.find(e => e.mx == hx && e.my == hy)
-      if (g != undefined) {
-        let cx = int(((ox % TILE_PX) + TILE_PX) % TILE_PX / CELL_PX)
-        let cy = int(((oy % TILE_PX) + TILE_PX) % TILE_PX / CELL_PX)
-        if (g.cells[cy][cx] == WALL) {
-          g.cells[cy][cx] = FLOOR
-          for (let i = 0; i < 20; i++) {
-            EFFECTS.push(new CELine({
-              x: g.mx * TILE_PX + cx * CELL_PX + CELL_PX / 2,
-              y: g.my * TILE_PX + cy * CELL_PX + CELL_PX / 2,
-              r: random(TAU), s: random(3)
-            }))
+
+      switch (COMMAND) {
+        case COMMAND_NONE:
+          break;
+        case COMMAND_TUNNEL:
+          let ox = HERO.x + (mouseX - WW / 2) / MAG.rate
+          let oy = HERO.y + (mouseY - WH / 2) / MAG.rate
+          let hx = floor(ox / TILE_PX)
+          let hy = floor(oy / TILE_PX)
+          let g = TILES.find(e => e.mx == hx && e.my == hy)
+          if (g != undefined) {
+            let cx = int(((ox % TILE_PX) + TILE_PX) % TILE_PX / CELL_PX)
+            let cy = int(((oy % TILE_PX) + TILE_PX) % TILE_PX / CELL_PX)
+            if (g.cells[cy][cx] == WALL) {
+              g.cells[cy][cx] = FLOOR
+              for (let i = 0; i < 20; i++) {
+                EFFECTS.push(new CELine({
+                  x: g.mx * TILE_PX + cx * CELL_PX + CELL_PX / 2,
+                  y: g.my * TILE_PX + cy * CELL_PX + CELL_PX / 2,
+                  r: random(TAU), s: random(3)
+                }))
+              }
+            }
+            g.redraw()
           }
-        }
-        g.redraw()
+          break;
+        case COMMAND_EXTRACTOR:
+          if (HERO.material >= 10) {
+            let ox = HERO.x + (mouseX - WW / 2) / MAG.rate
+            let oy = HERO.y + (mouseY - WH / 2) / MAG.rate
+            let hx = floor(ox / TILE_PX)
+            let hy = floor(oy / TILE_PX)
+            let g = TILES.find(e => e.mx == hx && e.my == hy)
+            if (g != undefined) {
+              let cx = int(((ox % TILE_PX) + TILE_PX) % TILE_PX / CELL_PX)
+              let cy = int(((oy % TILE_PX) + TILE_PX) % TILE_PX / CELL_PX)
+              if (g.cells[cy][cx] == FLOOR) {
+                g.cells[cy][cx] = FIRE_EXTRACT;
+                HERO.material -= 10;
+                BUILDS.push(new CBExtractor({
+                  x: hx * TILE_PX + cx * CELL_PX,
+                  y: hy * TILE_PX + cy * CELL_PX
+                }))
+                g.redraw()
+              }
+            }
+            COMMAND = COMMAND_NONE;
+          }
+          break;
+
       }
+
+
     }
   }
 
@@ -88,9 +128,10 @@ function input() {
 
     if (keyIsDown(32)) {
       INPUTS.space = true;
-      if (HERO.cooltime == 0) {
+      if (HERO.cooltime == 0 && HERO.mana >= 10) {
         MISSILES.push(new CSSword({ x: HERO.x, y: HERO.y, r: HERO.r }))
         HERO.cooltime = 30;
+        HERO.mana -= 10;
       }
     }
   }

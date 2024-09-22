@@ -1,4 +1,4 @@
-class CMMouse extends BCMover{
+class CMMouse extends BCCollidableObject{
     static INIT = 0;
     static WAIT = 10;
     static WATCH = 20;

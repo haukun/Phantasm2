@@ -1,7 +1,7 @@
 class BCEffect extends BCObject{
     static nextId = 0;
     init(obj) {
-        this.id = BCMover.nextId++;
+        this.id = BCCollidableObject.nextId++;
         this.live = true;
         this.tick = 0;
 
