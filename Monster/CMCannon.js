@@ -96,8 +96,12 @@ class CMCannon extends BCCollidableObject{
             }
 
             let rate = min(HERO.earth, 50) / 50
-            if (random(1) < (0.2 + rate * 0.8)) {
-                CHIPS.push(new CCMaterial({ x: this.x, y: this.y }))   
+            if (random(1) < (0.4 + rate * 0.6)) {
+                if (random(1) < .5) {
+                    CHIPS.push(new CCElement({ x: this.x, y: this.y }))
+                } else {
+                    CHIPS.push(new CCMaterial({ x: this.x, y: this.y }))
+                }
             }
         }
     }

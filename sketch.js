@@ -86,6 +86,23 @@ function init() {
     }
   }
 
+  CHIPS.push(new CCElement({x: 50, y:10, element:CCElement.FIRE}));
+  CHIPS.push(new CCElement({x: 90, y:10, element:CCElement.WATER}));
+  CHIPS.push(new CCElement({x: 130, y:10, element:CCElement.AIR}));
+  CHIPS.push(new CCElement({ x: 170, y: 10, element: CCElement.EARTH }));
+
+
+  CHIPS.push(new CCElement({x: 50, y:50, element:CCElement.FIRE}));
+  CHIPS.push(new CCElement({x: 90, y:50, element:CCElement.WATER}));
+  CHIPS.push(new CCElement({x: 130, y:50, element:CCElement.AIR}));
+  CHIPS.push(new CCElement({ x: 170, y: 50, element: CCElement.EARTH }));
+
+  CHIPS.push(new CCElement({x: 50, y:90, element:CCElement.FIRE}));
+  CHIPS.push(new CCElement({x: 90, y:90, element:CCElement.WATER}));
+  CHIPS.push(new CCElement({x: 130, y:90, element:CCElement.AIR}));
+  CHIPS.push(new CCElement({ x: 170, y: 90, element: CCElement.EARTH }));
+
+
   TILES.forEach(e => {
     if (random(1) < 0.1) {
       for (let cy = 0; cy < CELL_COUNT; cy++) {
@@ -253,6 +270,9 @@ function dispatchMessage() {
         break;
       case MSG_DAMAGED:
         DAMAGE_EFFECT = 10;
+        break;
+      case MSG_ELEMENTAL_BREAK:
+        HID.elementalBreakTick = 60;
         break;
     }
   }

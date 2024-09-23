@@ -1,4 +1,9 @@
 class CHID {
+
+    constructor() {
+        this.elementalBreakTick = 0;
+    }
+
     //--------------------------------------------------
     //  drawHID
     //--------------------------------------------------
@@ -206,6 +211,84 @@ class CHID {
         text(ceil(HERO.earth), 1375, 869)
   
         pop()
+
+        // crystal ball
+        push()
+        rectMode(CENTER)
+        stroke(255 , 0.5);
+        let offsetX = (random(this.elementalBreakTick) - this.elementalBreakTick / 2) / 2;
+        let offsetY = (random(this.elementalBreakTick) - this.elementalBreakTick / 2) / 2;
+        fill(0);
+        if (this.elementalBreakTick > 0) {
+            this.elementalBreakTick--;
+            fill(0, 100, random(100));
+        }
+        if (HERO.element.length == 3) {
+            fill(30 - abs(TICK % 60 - 30));
+        }
+        rect(350 + offsetX, 850 + offsetY, 100, 50, 30);
+
+        if (HERO.element.length == 3) {
+            noFill();
+            stroke(255, 1 - (TICK % 60)/ 60)
+            strokeWeight(2);
+            rect(350, 850, 100 + (TICK % 60)/2, 50 + (TICK % 60)/2, 30 + (TICK % 60)/2);
+        }
+
+        switch (HERO.element.length) {
+            case 0:
+                break;
+            case 1:
+                this.drawElement(350, 850, HERO.element[0]);
+                break;
+            case 2:
+                this.drawElement(335, 850, HERO.element[0]);
+                this.drawElement(365, 850, HERO.element[1]);
+                break;
+            case 3:
+                this.drawElement(320, 850, HERO.element[0]);
+                this.drawElement(350, 850, HERO.element[1]);
+                this.drawElement(380, 850, HERO.element[2]);
+                break;
+        }
+        pop()
+
+    }
+
+    drawElement(x, y, element, index) {
+        push();
+        stroke(0)
+        let hue;
+        let bri;
+        switch (element) {
+            case CCElement.FIRE:
+                hue = 0;
+                bri = 50;
+                break;
+            case CCElement.WATER:
+                hue = 240;
+                bri = 50;
+                break;
+            case CCElement.AIR:
+                hue = 150;
+                bri = 30;
+                break;
+            case CCElement.EARTH:
+                hue = 60;
+                bri = 30;
+                break;
+        }
+        translate(x, y);
+        scale(sin(TICK/20), 1)
+        rotate(PI / 4);
+
+        fill(hue, 90, bri);
+        square(0, 0, 20);
+
+        stroke(hue, 50, bri);
+        fill(hue, 30, 60);
+        square(0, 0, 15);
+        pop();
     }
   
 }

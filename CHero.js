@@ -15,6 +15,7 @@ class CHero extends BCObject{
     this.max_rune = 100;
     this.health = 100;
     this.max_health = 100;
+    this.element = [];
 
     this.cooltime = 0;
   }
@@ -171,6 +172,24 @@ class CHero extends BCObject{
       this.health = 100;
     } else if (this.health < 0) {
       this.health = 0;
+    }
+  }
+
+  addElement(element) {
+    switch (this.element.length) {
+      case 0:
+        this.element.push(element);
+        break;
+      default:
+        if (this.element[0] != element) {
+          this.element = [];
+          MSG.send({ msg: MSG_ELEMENTAL_BREAK });
+        } else {
+          if (this.element.length < 3) {
+            this.element.push(element);
+          }
+        }
+        break;
     }
   }
 }
