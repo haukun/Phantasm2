@@ -441,9 +441,12 @@ function hitCheck() {
     MISSILES.forEach(s => {
       if (s.evil == false) {
         if (abs(m.getMx() - s.getMx()) < 1 && abs(m.getMy() - s.getMy()) < 1) {
-          if (dist(m.x, m.y, s.x, s.y) < m.l + s.l) {
-            m.hits.push(s);
-            s.hits.push(m);
+          if (!m.memory.includes(s.id)) {
+            if (dist(m.x, m.y, s.x, s.y) < m.l + s.l) {
+              m.hits.push(s);
+              s.hits.push(m);
+              m.memory.push(s.id);
+            }
           }
         }
       }

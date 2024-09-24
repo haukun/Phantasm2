@@ -129,9 +129,27 @@ function input() {
 
     if (keyIsDown(32)) {
       INPUTS.space = true;
+      /*
       if (HERO.cooltime == 0 && HERO.mana >= 10) {
         MISSILES.push(new CSSword({ x: HERO.x, y: HERO.y, r: HERO.r }))
         HERO.cooltime = 30;
+        HERO.mana -= 7;
+      }
+      */
+      /*
+      if (HERO.cooltime == 0 && HERO.mana >= 30) {
+        MISSILES.push(new CSFlare({ x: HERO.x, y: HERO.y, r: HERO.r - PI/18 * 4 }))
+        MISSILES.push(new CSFlare({ x: HERO.x, y: HERO.y, r: HERO.r - PI/18 * 2 }))
+        MISSILES.push(new CSFlare({ x: HERO.x, y: HERO.y, r: HERO.r + PI/12 * 0}))
+        MISSILES.push(new CSFlare({ x: HERO.x, y: HERO.y, r: HERO.r + PI/18 * 2 }))
+        MISSILES.push(new CSFlare({ x: HERO.x, y: HERO.y, r: HERO.r + PI/18 * 4 }))
+        HERO.cooltime = 60;
+        HERO.mana -= 30;
+      }
+      */
+      if (HERO.cooltime == 0 && HERO.mana >= 15) {
+        MISSILES.push(new CSWindCutter({ x: HERO.x, y: HERO.y, r: HERO.r }))
+        HERO.cooltime = 15;
         HERO.mana -= 10;
       }
     }

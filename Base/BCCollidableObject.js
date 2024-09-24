@@ -5,6 +5,7 @@ class BCCollidableObject extends BCObject {
     this.live = true;
     this.tick = 0;
     this.hits = [];
+    this.memory = [];
     this.forceX = 0;
     this.forceY = 0;
 
