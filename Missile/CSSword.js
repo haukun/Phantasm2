@@ -57,5 +57,19 @@ class CSSword extends BCCollidableObject {
             0,
             5 * MAG.rate,
             10 * MAG.rate);
-        }
+    }
+
+    static drawIcon() {
+        stroke(60, 100, 100);
+        fill(60, 80, 80)
+        rotate(-PI/4);
+        ellipse(0,
+            0,
+            40,
+            5);
+        ellipse(-10,
+            0,
+            5,
+            10);
+    }
 }

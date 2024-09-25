@@ -3,8 +3,15 @@ document.addEventListener('contextmenu',function(event){
   event.preventDefault();
 });
 
+document.addEventListener('keydown', function (event) {
+  if (event.key == 'Tab') {
+    event.preventDefault();
+  }
+});
+
 let willWheelUp = false;
 let willWheelDown = false;
+let tabReleased = true;
 
 function input() {
   INPUTS.shift = false;
@@ -17,6 +24,7 @@ function input() {
   INPUTS.rclick = false;
   INPUTS.wheelu = false;
   INPUTS.wheeld = false;
+  INPUTS.tab = false;
 
   if (willWheelDown) {
     willWheelDown = false;
@@ -98,7 +106,7 @@ function input() {
     }
   }
 
-  if (keyIsPressed) {
+  //if (keyIsPressed) {
 
     let tx = 0;
     let ty = 0;
@@ -122,6 +130,27 @@ function input() {
       tx += 1;
       INPUTS.d = true;
     }
+    if (keyIsDown(9)) {
+      INPUTS.tab = true;
+      
+      if (tabReleased) {
+        HERO.equipNum++;
+        tabReleased = false;
+        if (HERO.equipNum > 2) {
+          HERO.equipNum = 0;
+        } else if (HERO.equipNum == 2) {
+          if (HERO.equips.length < 2) {
+            HERO.equipNum = 0;
+          }
+        } else if (HERO.equipNum == 1) {
+          if (HERO.equips.length < 1) {
+            HERO.equipNum = 0;
+          }
+        }
+      }
+    } else {
+      tabReleased = true;
+    }
 
     if (tx != 0 || ty != 0) {
       HERO.move(tx, ty);
@@ -129,31 +158,38 @@ function input() {
 
     if (keyIsDown(32)) {
       INPUTS.space = true;
-      /*
-      if (HERO.cooltime == 0 && HERO.mana >= 10) {
-        MISSILES.push(new CSSword({ x: HERO.x, y: HERO.y, r: HERO.r }))
-        HERO.cooltime = 30;
-        HERO.mana -= 7;
-      }
-      */
-      /*
-      if (HERO.cooltime == 0 && HERO.mana >= 30) {
-        MISSILES.push(new CSFlare({ x: HERO.x, y: HERO.y, r: HERO.r - PI/18 * 4 }))
-        MISSILES.push(new CSFlare({ x: HERO.x, y: HERO.y, r: HERO.r - PI/18 * 2 }))
-        MISSILES.push(new CSFlare({ x: HERO.x, y: HERO.y, r: HERO.r + PI/12 * 0}))
-        MISSILES.push(new CSFlare({ x: HERO.x, y: HERO.y, r: HERO.r + PI/18 * 2 }))
-        MISSILES.push(new CSFlare({ x: HERO.x, y: HERO.y, r: HERO.r + PI/18 * 4 }))
-        HERO.cooltime = 60;
-        HERO.mana -= 30;
-      }
-      */
-      if (HERO.cooltime == 0 && HERO.mana >= 15) {
-        MISSILES.push(new CSWindCutter({ x: HERO.x, y: HERO.y, r: HERO.r }))
-        HERO.cooltime = 15;
-        HERO.mana -= 10;
+
+      switch (HERO.equips[HERO.equipNum]) {
+        case CHero.PHANTASMAL_SWORD:
+          if (HERO.cooltime == 0 && HERO.mana >= 10) {
+            MISSILES.push(new CSSword({ x: HERO.x, y: HERO.y, r: HERO.r }))
+            HERO.cooltime = 30;
+            HERO.mana -= 7;
+          }
+          break;
+        case CHero.FLARE:
+          if (HERO.cooltime == 0 && HERO.mana >= 30) {
+            MISSILES.push(new CSFlare({ x: HERO.x, y: HERO.y, r: HERO.r - PI/18 * 4 }))
+            MISSILES.push(new CSFlare({ x: HERO.x, y: HERO.y, r: HERO.r - PI/18 * 2 }))
+            MISSILES.push(new CSFlare({ x: HERO.x, y: HERO.y, r: HERO.r + PI/12 * 0}))
+            MISSILES.push(new CSFlare({ x: HERO.x, y: HERO.y, r: HERO.r + PI/18 * 2 }))
+            MISSILES.push(new CSFlare({ x: HERO.x, y: HERO.y, r: HERO.r + PI/18 * 4 }))
+            HERO.cooltime = 60;
+            HERO.mana -= 30;
+          }
+    
+          break;
+        case CHero.WIND_CUTTER:
+          if (HERO.cooltime == 0 && HERO.mana >= 15) {
+            MISSILES.push(new CSWindCutter({ x: HERO.x, y: HERO.y, r: HERO.r }))
+            HERO.cooltime = 15;
+            HERO.mana -= 10;
+          }
+    
+          break;
       }
     }
-  }
+  //}
 }
 
 

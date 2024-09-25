@@ -42,9 +42,16 @@ class CSWindCutter extends BCCollidableObject {
     }
 
     draw() {
+        strokeWeight(5 * MAG.rate)
+        stroke(150, 90, 90)
+        fill(150, 60, 90);
+        arc(0, 0, 60 * MAG.rate, 60 * MAG.rate, this.r - PI / 6, this.r + PI / 6, CHORD);
+    }
+
+    static drawIcon() {
         strokeWeight(5)
         stroke(150, 90, 90)
         fill(150, 60, 90);
-        arc(0, 0, 60, 60, this.r - PI/6, this.r + PI/6 , CHORD);
+        arc(-10, 10, 40, 40, -PI/4 - PI / 6, -PI/4 + PI / 6, CHORD);
     }
 }

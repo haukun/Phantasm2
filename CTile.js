@@ -67,7 +67,7 @@ class CTile{
                             (_my*TILE_PX + cy*CELL_PX)/1000 + FAR, 19)
 
           if(wall1%.2 > .18 || wall2%.1 > .085 || wall3 > 0.6){
-            type = WALL;
+            //type = WALL;
           }      
           if(abs(_mx) < 1 && abs(_my)< 1 ){
             type = FLOOR;

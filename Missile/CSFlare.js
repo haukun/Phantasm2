@@ -51,10 +51,19 @@ class CSFlare extends BCCollidableObject {
 
     draw() {
         fill(0, 90, 90);
-        circle(0, 0, this.l);
+        circle(0, 0, this.l * MAG.rate);
         fill(20, 70, 90);
-        circle(0, 0, this.l * 0.7);
+        circle(0, 0, this.l * 0.7 * MAG.rate);
         fill(40, 40, 90);
-        circle(0, 0, this.l * 0.6);
+        circle(0, 0, this.l * 0.6 * MAG.rate);
+    }
+
+    static drawIcon() {
+        fill(0, 90, 90);
+        circle(0, 0, 25);
+        fill(20, 70, 90);
+        circle(0, 0, 25 * 0.7);
+        fill(40, 40, 90);
+        circle(0, 0, 25 * 0.6);
     }
 }

@@ -34,6 +34,7 @@ let TICK;
 //--------------------------------------------------
 function setup() {
   print("===== setup =====");
+  noCursor();
   createCanvas(1600, 900);
   colorMode(HSB);
   WW = 1600;
@@ -74,6 +75,7 @@ function init() {
   noiseSeed(NOW_FLOOR);
   TILES = [];
   MONSTERS = [];
+  MISSILES = [];
   BUILDS = [];
   CHIPS = [];
   EFFECTS = [];
@@ -101,6 +103,10 @@ function init() {
   CHIPS.push(new CCElement({x: 90, y:90, element:CCElement.WATER}));
   CHIPS.push(new CCElement({x: 130, y:90, element:CCElement.AIR}));
   CHIPS.push(new CCElement({ x: 170, y: 90, element: CCElement.EARTH }));
+
+  HERO.equips.push(CHero.PHANTASMAL_SWORD,
+    CHero.WIND_CUTTER,
+    CHero.FLARE);
 
 
   TILES.forEach(e => {
@@ -313,6 +319,9 @@ function drawDebugInfo(){
   textSize(12)
   INPUTS.shift ? fill(255) : noFill();
   rect(10, 150, 20, 10);
+  INPUTS.tab ? fill(255) : noFill();
+  rect(11, 120, 15, 10);
+  
   INPUTS.w ? fill(255) : noFill();
   rect(40, 120, 10, 10);
   INPUTS.a ? fill(255) : noFill();

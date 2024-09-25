@@ -1,4 +1,9 @@
 class CHero extends BCObject{
+
+  static PHANTASMAL_SWORD = 10;
+  static WIND_CUTTER = 20;
+  static FLARE = 30;
+
   born() {
     this.life = 100;
     this.max_life = 100;
@@ -18,6 +23,12 @@ class CHero extends BCObject{
     this.element = [];
 
     this.cooltime = 0;
+
+    this.lifeHighlightTime = 0;
+    this.manaHighlightTime = 0;
+
+    this.equips = [];
+    this.equipNum = 0;
   }
 
   init(obj) {
@@ -79,10 +90,10 @@ class CHero extends BCObject{
     let result;
     [HERO.x, HERO.y, result] = CanMove(HERO.x, HERO.y, _x * speed, _y * speed);
     if (result != STOP) {
-      this.fire -= 0.01
-      this.water -= 0.01
-      this.air -= 0.01
-      this.earth -= 0.01
+      this.fire -= 0.005
+      this.water -= 0.005
+      this.air -= 0.005
+      this.earth -= 0.005
 
       if (this.fire < 0) {
         this.fire = 0;

@@ -253,7 +253,115 @@ class CHID {
         }
         pop()
 
+        //  Equip
+        push()
+
+        fill(HERO.equipNum == 0 ? 20 : 0)
+        strokeWeight(HERO.equipNum == 0 ? 2 : 1)
+        stroke(255, HERO.equipNum == 0 ? 1 : 0.5);
+        square(20, 720, 40)
+        fill(HERO.equipNum == 1 ? 20 : 0)
+        strokeWeight(HERO.equipNum == 1 ? 2 : 1)
+        stroke(255, HERO.equipNum == 1 ? 1 : 0.5);
+        square(70, 720, 40)
+        fill(HERO.equipNum == 2 ? 20 : 0)
+        strokeWeight(HERO.equipNum == 2 ? 2 : 1)
+        stroke(255, HERO.equipNum == 2 ? 1 : 0.5);
+        square(120, 720, 40)
+
+        pop();
+
+        push()
+        translate(40, 740);
+        CSSword.drawIcon();
+        pop()
+
+        push()
+        translate(90, 740);
+        CSWindCutter.drawIcon();
+        pop()
+
+        push()
+        translate(140, 740);
+        CSFlare.drawIcon();
+        pop()
+
+        //  cursor
+        push()
+        if (lifeRate >= 1) {
+            HERO.lifeHighlightTime++;
+        } else {
+            if (HERO.lifeHighlightTime > 0) {
+                HERO.lifeHighlightTime = -20;
+            } else if (HERO.lifeHighlightTime == 0) {
+                //  nothing
+            } else {
+                HERO.lifeHighlightTime++;
+
+            }
+        }
+
+        if (manaRate >= 1) {
+            HERO.manaHighlightTime++;
+        } else {
+            if (HERO.manaHighlightTime > 0) {
+                HERO.manaHighlightTime = -20;
+            } else if (HERO.manaHighlightTime == 0) {
+                //  nothing
+            } else {
+                HERO.manaHighlightTime++;
+
+            }
+        }
+        
+        noFill()
+        strokeWeight(10)
+        stroke(120, 100, 50, max (0.7 - (max(abs(HERO.lifeHighlightTime, 60))-60) / 240, 0.3));
+        arc(mouseX - 4, mouseY, 100, 100, PI / 2, -PI / 2);
+
+        strokeWeight(5)
+        stroke(120, 60, 70, max(0.7 - (max(abs(HERO.lifeHighlightTime, 60))-60) / 240, 0.3));
+        arc(mouseX - 4, mouseY, 100, 100, PI / 2, -PI / 2 - (PI * (1 - lifeRate)));
+
+
+        strokeWeight(10)
+        stroke(210, 100, 50, max (0.7 - abs(HERO.manaHighlightTime) / 30, 0.3));
+        arc(mouseX + 4, mouseY, 100, 100, -PI / 2, PI / 2);
+
+        strokeWeight(5)
+        stroke(210, 60, 70, max(0.7 - abs(HERO.manaHighlightTime) / 30, 0.3));
+        arc(mouseX + 4, mouseY, 100, 100, PI / 2 - (PI * ( manaRate)), PI / 2);
+
+        strokeWeight(2);
+        noFill();
+        stroke(0, 0, 5);
+        circle(mouseX, mouseY, 10);
+
+        blendMode(ADD)
+        stroke(255, 0.5)
+        noFill()
+        strokeWeight(5)
+        circle(mouseX, mouseY, 10);
+        strokeWeight(3)
+        stroke(255, 0.3)
+        line(mouseX + 10, mouseY, mouseX  + 14, mouseY); 
+        line(mouseX - 10, mouseY, mouseX  - 14, mouseY); 
+        line(mouseX, mouseY + 10, mouseX, mouseY + 14); 
+        line(mouseX, mouseY - 10, mouseX, mouseY - 14); 
+        strokeWeight(2)
+        line(mouseX + 15, mouseY, mouseX  + 19, mouseY); 
+        line(mouseX - 15, mouseY, mouseX  - 19, mouseY); 
+        line(mouseX, mouseY + 15, mouseX, mouseY + 19); 
+        line(mouseX, mouseY - 15, mouseX, mouseY - 19); 
+        strokeWeight(1)
+        line(mouseX + 20, mouseY, mouseX  + 24, mouseY); 
+        line(mouseX - 20, mouseY, mouseX  - 24, mouseY); 
+        line(mouseX, mouseY + 20, mouseX, mouseY + 24); 
+        line(mouseX, mouseY - 20, mouseX, mouseY - 24); 
+        pop();
     }
+
+    
 
     drawElement(x, y, element, index) {
         push();
