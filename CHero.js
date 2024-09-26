@@ -4,6 +4,19 @@ class CHero extends BCObject{
   static WIND_CUTTER = 20;
   static FLARE = 30;
 
+  static GLOW_EARTH = 1
+  static GLOW_PHANTASMAL_SWORD = 2;
+  static GLOW_RUNE_TELEPORT = 3
+  static GLOW_FIRE = 101;
+  static GLOW_FLARE = 102;
+  static GLOW_RUNE_POWER_UP = 103;
+  static GLOW_WATER = 201;
+  static GLOW_RUNE_HEAL = 202;
+  static GLOW_RUNE_ENERGY = 203;
+  static GLOW_EFFICIENCY = 204;
+  static GLOW_AIR = 301;
+  static GLOW_WIND_CUTTER = 302;
+
   born() {
     this.life = 100;
     this.max_life = 100;
@@ -20,7 +33,21 @@ class CHero extends BCObject{
     this.max_rune = 100;
     this.health = 100;
     this.max_health = 100;
-    this.element = [];
+    this.elements = [];
+    this.glows = [];
+
+    this.skill_phantasmal_sword = 1;
+    this.skill_wind_cutter = 0;
+    this.skill_flare = 0;
+    this.skill_rune_teleport = 0;
+    this.skill_rune_heal = 0;
+    this.skill_rune_power_up = 0;
+    this.skill_rune_energy = 0;
+    this.skill_earth = 0;
+    this.skill_fire = 0;
+    this.skill_water = 0;
+    this.skill_air = 0;
+    this.skill_efficiency = 0;
 
     this.cooltime = 0;
 
@@ -186,18 +213,69 @@ class CHero extends BCObject{
     }
   }
 
+  addSkill(index) {
+    switch (this.glows[index]) {
+      case CHero.GLOW_WIND_CUTTER:
+        this.skill_wind_cutter++;
+        if (this.equips.length == 1) {
+          this.equips[1] = CHero.WIND_CUTTER;
+        }
+        break;
+    }
+
+    HERO.max_life += 5;
+    HERO.life += 5;
+    HERO.max_mana += 5;
+    HERO.mana += 5;
+    HERO.elements = [];
+  }
+
   addElement(element) {
-    switch (this.element.length) {
+    switch (this.elements.length) {
       case 0:
-        this.element.push(element);
+        this.elements.push(element);
         break;
       default:
-        if (this.element[0] != element) {
-          this.element = [];
+        if (this.elements[0] != element) {
+          this.elements = [];
           MSG.send({ msg: MSG_ELEMENTAL_BREAK });
         } else {
-          if (this.element.length < 3) {
-            this.element.push(element);
+          if (this.elements.length < 3) {
+            this.elements.push(element);
+          }
+          if (this.elements.length == 3) {
+            this.glows = [];
+            let candidates = []
+            switch (this.elements[0]) {
+              case CCElement.FIRE:
+                //candidates.push(GLOW_FIRE);
+                //candidates.push(GLOW_FLARE);
+                //candidates.push(GLOW_RUNE_POWER_UP);
+                break;
+              case CCElement.WATER:
+                //candidates.push(GLOW_WATER);
+                //if (this.skill_rune_heal == 3) {
+                //  candidates.push(GLOW_RUNE_HEAL);
+               // }
+                //candidates.push(GLOW_RUNE_ENERGY);
+                //candidates.push(GLOW_EFFICIENCY);
+                break;
+              case CCElement.AIR:
+                //candidates.push(GLOW_AIR);
+                candidates.push(CHero.GLOW_WIND_CUTTER);
+                break;
+              case CCElement.EARTH:
+                //candidates.push(GLOW_EARTH);
+                //candidates.push(GLOW_PHANTASMAL_SWORD);
+                //if (this.skill_rune_teleport <= 3) {
+                //  candidates.push(GLOW_RUNE_TELEPORT);
+               // }
+                //break;
+            }
+            candidates.forEach(c => {
+              this.glows.push(c);
+            });
+            print(this.glows.length);
           }
         }
         break;

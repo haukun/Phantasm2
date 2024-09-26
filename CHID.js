@@ -223,32 +223,35 @@ class CHID {
             this.elementalBreakTick--;
             fill(0, 100, random(100));
         }
-        if (HERO.element.length == 3) {
+        if (HERO.elements.length == 3) {
             fill(30 - abs(TICK % 60 - 30));
+            if (IsInner(mouseX, mouseY, 300, 825, 100, 50)) {
+                fill(50);
+            }
         }
         rect(350 + offsetX, 850 + offsetY, 100, 50, 30);
 
-        if (HERO.element.length == 3) {
+        if (HERO.elements.length == 3) {
             noFill();
             stroke(255, 1 - (TICK % 60)/ 60)
             strokeWeight(2);
             rect(350, 850, 100 + (TICK % 60)/2, 50 + (TICK % 60)/2, 30 + (TICK % 60)/2);
         }
 
-        switch (HERO.element.length) {
+        switch (HERO.elements.length) {
             case 0:
                 break;
             case 1:
-                this.drawElement(350, 850, HERO.element[0]);
+                this.drawElement(350, 850, HERO.elements[0]);
                 break;
             case 2:
-                this.drawElement(335, 850, HERO.element[0]);
-                this.drawElement(365, 850, HERO.element[1]);
+                this.drawElement(335, 850, HERO.elements[0]);
+                this.drawElement(365, 850, HERO.elements[1]);
                 break;
             case 3:
-                this.drawElement(320, 850, HERO.element[0]);
-                this.drawElement(350, 850, HERO.element[1]);
-                this.drawElement(380, 850, HERO.element[2]);
+                this.drawElement(320, 850, HERO.elements[0]);
+                this.drawElement(350, 850, HERO.elements[1]);
+                this.drawElement(380, 850, HERO.elements[2]);
                 break;
         }
         pop()
@@ -271,20 +274,23 @@ class CHID {
 
         pop();
 
-        push()
-        translate(40, 740);
-        CSSword.drawIcon();
-        pop()
+        for (let i = 0; i < HERO.equips.length; i++) {
+            push()
+            translate(40 + i * 50, 740);
+            switch (HERO.equips[i]) {
+                case CHero.PHANTASMAL_SWORD:
+                CSSword.drawIcon();
+                break;
+                case CHero.WIND_CUTTER:
+                CSWindCutter.drawIcon();
+                break;
+                case CHero.FLARE:
+                CSFlare.drawIcon();
+                break;
+            }
+            pop()
 
-        push()
-        translate(90, 740);
-        CSWindCutter.drawIcon();
-        pop()
-
-        push()
-        translate(140, 740);
-        CSFlare.drawIcon();
-        pop()
+        }
 
         //  cursor
         push()
@@ -361,7 +367,26 @@ class CHID {
         pop();
     }
 
-    
+    drawGlowCursor() {
+        push()
+        strokeWeight(3);
+        noFill();
+        stroke(0, 0, 5);
+        circle(mouseX, mouseY, 20);
+      
+        blendMode(ADD)
+        stroke(255, 0.5)
+        noFill()
+        strokeWeight(5)
+        circle(mouseX, mouseY, 20);
+      
+        noStroke();
+        fill(255, 0.05);
+        for (let i = 0; i < 10; i++) {
+          circle(mouseX, mouseY, i * 10);
+        }
+        pop()
+    }
 
     drawElement(x, y, element, index) {
         push();

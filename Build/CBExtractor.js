@@ -16,7 +16,7 @@ class CBExtractor extends BCCollidableObject{
     }
 
     act() {
-        let g = GetTile(this.getMx(), this.getMy());
+        let g = TM.get(this.getMx(), this.getMy());
 
         if (g.fire != undefined ||
             g.water != undefined ||

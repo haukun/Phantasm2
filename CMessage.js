@@ -1,6 +1,8 @@
 const MSG_REACH_STAIR = 10;
 const MSG_DAMAGED = 20;
 const MSG_ELEMENTAL_BREAK = 30;
+const MSG_PAUSE = 40;
+const MSG_GLOW = 50;
 
 class CMessage {
   constructor() {

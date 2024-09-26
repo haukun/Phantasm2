@@ -26,6 +26,18 @@ let MSG;;
 
 let NOW_FLOOR;
 
+const SCENE_MAIN = 10;
+const SCENE_WILL_PAUSE = 20;
+const SCENE_PAUSING = 21;
+const SCENE_PAUSE = 25;
+const SCENE_WILL_GLOW = 30;
+const SCENE_GLOWING = 31;
+const SCENE_GLOW = 35;
+let SCENE;
+let SCENE_TIMER = 0;
+
+let PAUSE_CAPTURE;
+
 let SIGHT;
 let INPUTS;
 let TICK;
@@ -45,6 +57,8 @@ function setup() {
   CELL_COUNT = 8;
   CELL_PX = 36;
   TILE_PX = CELL_PX * CELL_COUNT;
+
+  SCENE = SCENE_MAIN;
 
   MAG = new CMag();
   HERO = new CHero();
@@ -86,7 +100,7 @@ function init() {
 
   TM.create(NOW_FLOOR * 2, NOW_FLOOR * 2);
 
-  /*
+  
   CHIPS.push(new CCElement({x: 50, y:10, element:CCElement.FIRE}));
   CHIPS.push(new CCElement({x: 90, y:10, element:CCElement.WATER}));
   CHIPS.push(new CCElement({x: 130, y:10, element:CCElement.AIR}));
@@ -101,11 +115,12 @@ function init() {
   CHIPS.push(new CCElement({x: 90, y:90, element:CCElement.WATER}));
   CHIPS.push(new CCElement({x: 130, y:90, element:CCElement.AIR}));
   CHIPS.push(new CCElement({ x: 170, y: 90, element: CCElement.EARTH }));
-*/
+
   
   HERO.equips.push(CHero.PHANTASMAL_SWORD,
-    CHero.WIND_CUTTER,
-    CHero.FLARE);
+    //CHero.WIND_CUTTER,
+    //CHero.FLARE
+  );
 
 
   for (let y = 0; y < TM.worldHeight; y++) {
@@ -205,27 +220,132 @@ function init() {
 //  draw
 //--------------------------------------------------
 function draw() {
+  switch (SCENE) {
+    case SCENE_WILL_PAUSE:
+      PAUSE_CAPTURE = this.get();
+      SCENE = SCENE_PAUSING
+      SCENE_TIMER = 0;
+      break;
+    case SCENE_PAUSING:
+      background(0);
+      image(PAUSE_CAPTURE, 0, 0);
+      background(0, SCENE_TIMER / 60);
+      SCENE_TIMER++;
+      if (SCENE_TIMER > 30) {
+        SCENE = SCENE_PAUSE;
+      }
+      break;
+    case SCENE_PAUSE:
+      cursor();
+      background(0);
+      image(PAUSE_CAPTURE, 0, 0);
+      background(0, SCENE_TIMER / 60);
+      push();
+      stroke(0)
+      textSize(50);
+      textAlign(CENTER)
+      fill(255);
+      text("Press 'Q' to return to the game.", HW, HH);
+      pop();
+
+      if (keyIsDown(81)) {
+        SCENE = SCENE_MAIN;
+        noCursor();
+      }
+      break;
+    
+    case SCENE_WILL_GLOW:
+      PAUSE_CAPTURE = this.get();
+      SCENE = SCENE_GLOWING
+      SCENE_TIMER = 0;
+      HID.drawGlowCursor();
+      break;
+    case SCENE_GLOWING:
+      background(0);
+      image(PAUSE_CAPTURE, 0, 0);
+      background(0, SCENE_TIMER / 60);
+      SCENE_TIMER++;
+      if (SCENE_TIMER > 30) {
+        SCENE = SCENE_GLOW;
+        SCENE_TIMER = 0;
+      }
+      HID.drawGlowCursor();
+      break;
+    case SCENE_GLOW:
+      background(0);
+      image(PAUSE_CAPTURE, 0, 0);
+      background(0, 0.5);
+      sceneGlow();
+        break;
+    case SCENE_MAIN:
+      sceneMain();
+      break;
+  }
+}
+
+function sceneGlow() {
+  push()
+  SCENE_TIMER++;
+  rectMode(CENTER);
+  strokeWeight(5)
+  stroke(255)
+
+  let centerX = HW - (HERO.glows.length - 1) * 150;
+  for (let i = 0; i < HERO.glows.length; i++) {
+    let x = centerX + i * 300;
+    let y = HH + cos(min(SCENE_TIMER, 30) / 30 * PI / 2) * WH;
+    fill(0)
+    if (IsInner(mouseX, mouseY, x - 140, y - 200, 280, 400)) {
+      fill(30)
+    }
+    rect(x, y, 280, 400, 50)
+  }
+
+  HID.drawGlowCursor();
+
+  if (mouseIsPressed) {
+    if (mouseButton == LEFT) {
+      let isSelected = false;
+      for (let i = 0; i < HERO.glows.length; i++) {
+        let x = centerX + i * 300;
+        let y = HH + cos(min(SCENE_TIMER, 30) / 30 * PI / 2) * WH;
+        if (IsInner(mouseX, mouseY, x - 140, y - 200, 280, 400)) {
+          isSelected = true;
+          HERO.addSkill(i);
+          SCENE = SCENE_MAIN;
+        }
+      }
+      
+      if (!isSelected) {
+        SCENE = SCENE_MAIN;
+      }
+    }
+  }
+  pop();
+}
+
+function sceneMain() {
   TICK++;
   input();
   background(0);
-  
+
   MAG.calc()
   FRAME_RATE.calc()
-  
+
   drawTile()
 
   push();
   SIGHT.clear()
   SIGHT.background(0, 200);
   SIGHT.erase()
-  let sight_r = HW * MAG.rate * (0.5 + 1.5 * (min(HERO.fire, 50) / 50)**2);
+  let sight_r = HW * MAG.rate * (0.5 + 1.5 * (min(HERO.fire, 50) / 50) ** 2);
   SIGHT.circle(HW, HH, sight_r)
 
   image(SIGHT, 0, 0)
-  fill(0,0.01)
-  circle(HW,HH,sight_r);
+  fill(0, 0.01)
+  circle(HW, HH, sight_r);
   drawingContext.clip()
-  
+
   drawMonster();
   drawMissile();
   drawChip();
@@ -246,7 +366,7 @@ function draw() {
   drawDamage();
 
   HID.draw();
-  
+
   dispatchMessage();
 
   drawDebugInfo()
@@ -274,6 +394,12 @@ function dispatchMessage() {
         break;
       case MSG_ELEMENTAL_BREAK:
         HID.elementalBreakTick = 60;
+        break;
+      case MSG_PAUSE:
+        SCENE = SCENE_WILL_PAUSE;
+        break;
+      case MSG_GLOW:
+        SCENE = SCENE_WILL_GLOW;
         break;
     }
   }
@@ -316,6 +442,8 @@ function drawDebugInfo(){
   rect(10, 150, 20, 10);
   INPUTS.tab ? fill(255) : noFill();
   rect(11, 120, 15, 10);
+  INPUTS.escape ? fill(255) : noFill();
+  rect(11, 110, 15, 8);
   
   INPUTS.w ? fill(255) : noFill();
   rect(40, 120, 10, 10);
@@ -325,6 +453,10 @@ function drawDebugInfo(){
   rect(40, 130, 10, 10);
   INPUTS.d ? fill(255) : noFill();
   rect(50, 130, 10, 10);
+  INPUTS.q ? fill(255) : noFill();
+  rect(30, 120, 10, 10);
+  INPUTS.e ? fill(255) : noFill();
+  rect(50, 120, 10, 10);
   INPUTS.space ? fill(255) : noFill();
   rect(40, 160, 30, 10);
 
@@ -630,6 +762,17 @@ function drawMinimap(){
   circle(wx + vw/2*18 ,wy + vh/2*18,3)
   pop();
   
+}
+
+//--------------------------------------------------
+//  IsInner
+//--------------------------------------------------
+function IsInner(_x, _y, _tx, _ty, _tw, _th) {
+  if (_tx < _x && _x < _tx + _tw &&
+    _ty < _y && _y < _ty + _th) {
+    return true;
+  }
+  return false;
 }
 
 //--------------------------------------------------

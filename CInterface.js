@@ -4,7 +4,7 @@ document.addEventListener('contextmenu',function(event){
 });
 
 document.addEventListener('keydown', function (event) {
-  if (event.key == 'Tab') {
+  if (event.key == 'Tab' || event.key == 'Escape') {
     event.preventDefault();
   }
 });
@@ -12,6 +12,7 @@ document.addEventListener('keydown', function (event) {
 let willWheelUp = false;
 let willWheelDown = false;
 let tabReleased = true;
+let escapeReleased = true;
 
 function input() {
   INPUTS.shift = false;
@@ -20,11 +21,14 @@ function input() {
   INPUTS.a = false;
   INPUTS.s = false;
   INPUTS.d = false;
+  INPUTS.q = false;
+  INPUTS.e = false;
   INPUTS.lclick = false;
   INPUTS.rclick = false;
   INPUTS.wheelu = false;
   INPUTS.wheeld = false;
   INPUTS.tab = false;
+  INPUTS.escape = false;
 
   if (willWheelDown) {
     willWheelDown = false;
@@ -42,9 +46,13 @@ function input() {
       INPUTS.lclick = true;
 
       COMMAND = COMMAND_NONE;
-      if (mouseX > 600 && mouseX < 640 && mouseY > 850 && mouseY < 890) {
+      if (IsInner(mouseX, mouseY, 300, 825, 100, 30)) {
+        MSG.send({msg:MSG_GLOW})
+      }
+
+      if (IsInner(mouseX, mouseY, 600, 850, 40, 40)) {
         COMMAND = COMMAND_TUNNEL;
-      }else if (mouseX > 650 && mouseX < 690 && mouseY > 850 && mouseY < 890) {
+      }else if (IsInner(mouseX, mouseY, 650, 850, 40, 40)) {
         COMMAND = COMMAND_EXTRACTOR;
       }
     }else if (mouseButton == RIGHT) {
@@ -106,90 +114,106 @@ function input() {
     }
   }
 
-  //if (keyIsPressed) {
+  let tx = 0;
+  let ty = 0;
+  if (keyIsDown(SHIFT)) {
+    speed = 32
+    INPUTS.shift = true;
+  }
+  if (keyIsDown(87)) {
+    ty -= 1;
+    INPUTS.w = true;
+  }
+  if (keyIsDown(65)) {
+    tx -= 1;
+    INPUTS.a = true;
+  }
+  if (keyIsDown(83)) {
+    ty += 1;
+    INPUTS.s = true;
+  }
+  if (keyIsDown(68)) {
+    tx += 1;
+    INPUTS.d = true;
+  }
+  if (keyIsDown(81)) {
+    INPUTS.q = true;
+  }
+  if (keyIsDown(69)) {
+    INPUTS.e = true;
+  }
+  if (keyIsDown(27)) {
+    INPUTS.escape = true;
 
-    let tx = 0;
-    let ty = 0;
-    if (keyIsDown(SHIFT)) {
-      speed = 32
-      INPUTS.shift = true;
+    if (escapeReleased) {
+      escapeReleased = false;
+      if (SCENE = SCENE_MAIN) {
+        MSG.send({ msg: MSG_PAUSE });
+      }
+  
+    } else {
+      escapeReleased = true;
     }
-    if (keyIsDown(87)) {
-      ty -= 1;
-      INPUTS.w = true;
-    }
-    if (keyIsDown(65)) {
-      tx -= 1;
-      INPUTS.a = true;
-    }
-    if (keyIsDown(83)) {
-      ty += 1;
-      INPUTS.s = true;
-    }
-    if (keyIsDown(68)) {
-      tx += 1;
-      INPUTS.d = true;
-    }
-    if (keyIsDown(9)) {
-      INPUTS.tab = true;
+  }
+  if (keyIsDown(9)) {
+    INPUTS.tab = true;
       
-      if (tabReleased) {
-        HERO.equipNum++;
-        tabReleased = false;
-        if (HERO.equipNum > 2) {
+    if (tabReleased) {
+      HERO.equipNum++;
+      tabReleased = false;
+      if (HERO.equipNum > 2) {
+        HERO.equipNum = 0;
+      } else if (HERO.equipNum == 2) {
+        if (HERO.equips.length < 3) {
           HERO.equipNum = 0;
-        } else if (HERO.equipNum == 2) {
-          if (HERO.equips.length < 2) {
-            HERO.equipNum = 0;
-          }
-        } else if (HERO.equipNum == 1) {
-          if (HERO.equips.length < 1) {
-            HERO.equipNum = 0;
-          }
+        }
+      } else if (HERO.equipNum == 1) {
+        if (HERO.equips.length < 2) {
+          HERO.equipNum = 0;
         }
       }
-    } else {
-      tabReleased = true;
     }
+  } else {
+    tabReleased = true;
+  }
 
-    if (tx != 0 || ty != 0) {
-      HERO.move(tx, ty);
-    }
+  if (tx != 0 || ty != 0) {
+    HERO.move(tx, ty);
+  }
 
-    if (keyIsDown(32)) {
-      INPUTS.space = true;
+  if (keyIsDown(32)) {
+    INPUTS.space = true;
 
-      switch (HERO.equips[HERO.equipNum]) {
-        case CHero.PHANTASMAL_SWORD:
-          if (HERO.cooltime == 0 && HERO.mana >= 10) {
-            MISSILES.push(new CSSword({ x: HERO.x, y: HERO.y, r: HERO.r }))
-            HERO.cooltime = 30;
-            HERO.mana -= 7;
-          }
-          break;
-        case CHero.FLARE:
-          if (HERO.cooltime == 0 && HERO.mana >= 30) {
-            MISSILES.push(new CSFlare({ x: HERO.x, y: HERO.y, r: HERO.r - PI/18 * 4 }))
-            MISSILES.push(new CSFlare({ x: HERO.x, y: HERO.y, r: HERO.r - PI/18 * 2 }))
-            MISSILES.push(new CSFlare({ x: HERO.x, y: HERO.y, r: HERO.r + PI/12 * 0}))
-            MISSILES.push(new CSFlare({ x: HERO.x, y: HERO.y, r: HERO.r + PI/18 * 2 }))
-            MISSILES.push(new CSFlare({ x: HERO.x, y: HERO.y, r: HERO.r + PI/18 * 4 }))
-            HERO.cooltime = 60;
-            HERO.mana -= 30;
-          }
+    switch (HERO.equips[HERO.equipNum]) {
+      case CHero.PHANTASMAL_SWORD:
+        if (HERO.cooltime == 0 && HERO.mana >= 10) {
+          MISSILES.push(new CSSword({ x: HERO.x, y: HERO.y, r: HERO.r }))
+          HERO.cooltime = 30;
+          HERO.mana -= 7;
+        }
+        break;
+      case CHero.FLARE:
+        if (HERO.cooltime == 0 && HERO.mana >= 30) {
+          MISSILES.push(new CSFlare({ x: HERO.x, y: HERO.y, r: HERO.r - PI / 18 * 4 }))
+          MISSILES.push(new CSFlare({ x: HERO.x, y: HERO.y, r: HERO.r - PI / 18 * 2 }))
+          MISSILES.push(new CSFlare({ x: HERO.x, y: HERO.y, r: HERO.r + PI / 12 * 0 }))
+          MISSILES.push(new CSFlare({ x: HERO.x, y: HERO.y, r: HERO.r + PI / 18 * 2 }))
+          MISSILES.push(new CSFlare({ x: HERO.x, y: HERO.y, r: HERO.r + PI / 18 * 4 }))
+          HERO.cooltime = 60;
+          HERO.mana -= 30;
+        }
     
-          break;
-        case CHero.WIND_CUTTER:
-          if (HERO.cooltime == 0 && HERO.mana >= 15) {
-            MISSILES.push(new CSWindCutter({ x: HERO.x, y: HERO.y, r: HERO.r }))
-            HERO.cooltime = 15;
-            HERO.mana -= 10;
-          }
+        break;
+      case CHero.WIND_CUTTER:
+        if (HERO.cooltime == 0 && HERO.mana >= 15) {
+          MISSILES.push(new CSWindCutter({ x: HERO.x, y: HERO.y, r: HERO.r }))
+          HERO.cooltime = 15;
+          HERO.mana -= 10;
+        }
     
-          break;
-      }
+        break;
     }
-  //}
+  }
 }
 
 
