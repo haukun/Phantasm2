@@ -15,7 +15,7 @@ class BCCollidableObject extends BCObject {
 
   doDraw() {    
     if (this.live) {
-      let g = TILES.find((e) => e.mx == this.getMx() && e.my == this.getMy());
+      let g = TM.get(this.getMx(), this.getMy());
       if (g != undefined && g.look) {
         push();
         rectMode(CENTER);

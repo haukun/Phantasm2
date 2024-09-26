@@ -315,22 +315,22 @@ class CHID {
         }
         
         noFill()
-        strokeWeight(10)
+        strokeWeight(12)
         stroke(120, 100, 50, max (0.7 - (max(abs(HERO.lifeHighlightTime, 60))-60) / 240, 0.3));
-        arc(mouseX - 4, mouseY, 100, 100, PI / 2, -PI / 2);
+        arc(mouseX - 4, mouseY, 200, 200, PI / 2, -PI / 2);
 
-        strokeWeight(5)
+        strokeWeight(6)
         stroke(120, 60, 70, max(0.7 - (max(abs(HERO.lifeHighlightTime, 60))-60) / 240, 0.3));
-        arc(mouseX - 4, mouseY, 100, 100, PI / 2, -PI / 2 - (PI * (1 - lifeRate)));
+        arc(mouseX - 4, mouseY, 200, 200, PI / 2, -PI / 2 - (PI * (1 - lifeRate)));
 
 
-        strokeWeight(10)
+        strokeWeight(12)
         stroke(210, 100, 50, max (0.7 - abs(HERO.manaHighlightTime) / 30, 0.3));
-        arc(mouseX + 4, mouseY, 100, 100, -PI / 2, PI / 2);
+        arc(mouseX + 4, mouseY, 200, 200, -PI / 2, PI / 2);
 
-        strokeWeight(5)
+        strokeWeight(6)
         stroke(210, 60, 70, max(0.7 - abs(HERO.manaHighlightTime) / 30, 0.3));
-        arc(mouseX + 4, mouseY, 100, 100, PI / 2 - (PI * ( manaRate)), PI / 2);
+        arc(mouseX + 4, mouseY, 200, 200, PI / 2 - (PI * ( manaRate)), PI / 2);
 
         strokeWeight(2);
         noFill();

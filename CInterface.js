@@ -58,7 +58,7 @@ function input() {
           let oy = HERO.y + (mouseY - WH / 2) / MAG.rate
           let hx = floor(ox / TILE_PX)
           let hy = floor(oy / TILE_PX)
-          let g = TILES.find(e => e.mx == hx && e.my == hy)
+          let g = TM.get(hx, hy);
           if (g != undefined) {
             let cx = int(((ox % TILE_PX) + TILE_PX) % TILE_PX / CELL_PX)
             let cy = int(((oy % TILE_PX) + TILE_PX) % TILE_PX / CELL_PX)
@@ -82,7 +82,7 @@ function input() {
             let oy = HERO.y + (mouseY - WH / 2) / MAG.rate
             let hx = floor(ox / TILE_PX)
             let hy = floor(oy / TILE_PX)
-            let g = TILES.find(e => e.mx == hx && e.my == hy)
+            let g = TM.get(hx, hy)
             if (g != undefined) {
               let cx = int(((ox % TILE_PX) + TILE_PX) % TILE_PX / CELL_PX)
               let cy = int(((oy % TILE_PX) + TILE_PX) % TILE_PX / CELL_PX)

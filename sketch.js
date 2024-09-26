@@ -3,7 +3,7 @@ let TILE_PX;       // 1タイルのピクセル幅
 let CELL_COUNT;    // 1タイル内にあるセルの数
 let CELL_PX;       // 1セルのピクセル幅
 
-let TILES = [];
+let TM;
 let HERO;
 let MONSTERS = [];
 let MISSILES = [];
@@ -51,6 +51,8 @@ function setup() {
   FRAME_RATE = new CFramerate();  
   MSG = new CMessage();
 
+  TM = new CTileManager();
+
   NOW_FLOOR = 0;
   INPUTS = {};
 
@@ -73,7 +75,7 @@ function init() {
   print("----- init -----");
   NOW_FLOOR++;
   noiseSeed(NOW_FLOOR);
-  TILES = [];
+  TM.init();
   MONSTERS = [];
   MISSILES = [];
   BUILDS = [];
@@ -82,17 +84,13 @@ function init() {
 
   HERO.init();
 
-  for(let y = -4 - NOW_FLOOR * 2; y <= 4 + NOW_FLOOR * 2; y++){
-    for(let x = -4 - NOW_FLOOR * 2; x <= 4 + NOW_FLOOR * 2; x++){
-      TILES.push(new CTile(x,y));
-    }
-  }
+  TM.create(NOW_FLOOR * 2, NOW_FLOOR * 2);
 
+  /*
   CHIPS.push(new CCElement({x: 50, y:10, element:CCElement.FIRE}));
   CHIPS.push(new CCElement({x: 90, y:10, element:CCElement.WATER}));
   CHIPS.push(new CCElement({x: 130, y:10, element:CCElement.AIR}));
   CHIPS.push(new CCElement({ x: 170, y: 10, element: CCElement.EARTH }));
-
 
   CHIPS.push(new CCElement({x: 50, y:50, element:CCElement.FIRE}));
   CHIPS.push(new CCElement({x: 90, y:50, element:CCElement.WATER}));
@@ -103,44 +101,46 @@ function init() {
   CHIPS.push(new CCElement({x: 90, y:90, element:CCElement.WATER}));
   CHIPS.push(new CCElement({x: 130, y:90, element:CCElement.AIR}));
   CHIPS.push(new CCElement({ x: 170, y: 90, element: CCElement.EARTH }));
-
+*/
+  
   HERO.equips.push(CHero.PHANTASMAL_SWORD,
     CHero.WIND_CUTTER,
     CHero.FLARE);
 
 
-  TILES.forEach(e => {
-    if (random(1) < 0.1) {
-      for (let cy = 0; cy < CELL_COUNT; cy++) {
-        for (let cx = 0; cx < CELL_COUNT; cx++) {
-          if (e.cells[cy][cx] == FLOOR) {
-            if (random(1) < 0.1) {
-              let p = int(random(2));
-              switch (p) {
-                case 0:
-                  MONSTERS.push(new CMMouse({
-                    x: e.mx * TILE_PX + cx * CELL_PX,
-                    y: e.my * TILE_PX + cy * CELL_PX
-                  }));
-                      break;
-                case 1:
-                  MONSTERS.push(new CMCannon({
-                    x: e.mx * TILE_PX + cx * CELL_PX,
-                    y: e.my * TILE_PX + cy * CELL_PX
-                  }));
-                      break;
+  for (let y = 0; y < TM.worldHeight; y++) {
+    for (let x = 0; x < TM.worldWidth; x++) {
+      let e = TM.TILES[y][x];
+      if (random(1) < 0.1) {
+        for (let cy = 0; cy < CELL_COUNT; cy++) {
+          for (let cx = 0; cx < CELL_COUNT; cx++) {
+            if (e.cells[cy][cx] == FLOOR) {
+              if (random(1) < 0.1) {
+                let p = int(random(2));
+                switch (p) {
+                  case 0:
+                    MONSTERS.push(new CMMouse({
+                      x: e.mx * TILE_PX + cx * CELL_PX,
+                      y: e.my * TILE_PX + cy * CELL_PX
+                    }));
+                    break;
+                  case 1:
+                    MONSTERS.push(new CMCannon({
+                      x: e.mx * TILE_PX + cx * CELL_PX,
+                      y: e.my * TILE_PX + cy * CELL_PX
+                    }));
+                    break;
+                }
               }
             }
           }
         }
       }
     }
-  });
+  }
+  
 
-
-  let normalRooms = TILES.filter(e => e.room == ROOM_NORMAL);
-
-  let g = normalRooms[floor(random(normalRooms.length))];
+  let g = TM.getRandomTile(ROOM_NORMAL);
   let tx = int(random(CELL_COUNT));
   let ty = int(random(CELL_COUNT));
   g.cells[ty][tx] = STAIR;
@@ -148,9 +148,7 @@ function init() {
   g.stair = { x: tx, y: ty}
   g.redraw()
 
-
-  normalRooms = TILES.filter(e => e.room == ROOM_NORMAL);
-  let fire = normalRooms[floor(random(normalRooms.length))];
+  let fire = TM.getRandomTile(ROOM_NORMAL);
   tx = int(random(CELL_COUNT));
   ty = int(random(CELL_COUNT));
   fire.fire = {x: tx, y: ty};
@@ -158,8 +156,7 @@ function init() {
   fire.room = ROOM_FIRE;
   fire.redraw();
 
-  normalRooms = TILES.filter(e => e.room == ROOM_NORMAL);
-  let water = normalRooms[floor(random(normalRooms.length))];
+  let water = TM.getRandomTile(ROOM_NORMAL);
   tx = int(random(CELL_COUNT));
   ty = int(random(CELL_COUNT));
   water.water = {x: tx, y: ty};;
@@ -167,8 +164,7 @@ function init() {
   fire.room = ROOM_WATER
   water.redraw();
 
-  normalRooms = TILES.filter(e => e.room == ROOM_NORMAL);
-  let air = normalRooms[floor(random(normalRooms.length))];
+  let air = TM.getRandomTile(ROOM_NORMAL);
   tx = int(random(CELL_COUNT));
   ty = int(random(CELL_COUNT));
   air.air = {x: tx, y: ty};;
@@ -176,8 +172,7 @@ function init() {
   fire.room = ROOM_AIR;
   air.redraw();
 
-  normalRooms = TILES.filter(e => e.room == ROOM_NORMAL);
-  let earth = normalRooms[floor(random(normalRooms.length))];
+  let earth = TM.getRandomTile(ROOM_NORMAL);
   tx = int(random(CELL_COUNT));
   ty = int(random(CELL_COUNT));
   earth.earth = {x: tx, y: ty};;
@@ -352,7 +347,7 @@ function drawDebugInfo(){
   let texts = [];
 
   texts.push(`Frame: ${FRAME_RATE.rate} MAX: ${FRAME_RATE.max} MIN:${FRAME_RATE.min}`)
-  texts.push(`TILES  : ${ TILES.length }`);
+  texts.push(`TILES  : ${ TM.TILES.length }`);
   texts.push(`MONSTER: ${MONSTERS.length}`);
   texts.push(`MISSILE: ${MISSILES.length}`);
   texts.push(`BUILD  : ${BUILDS.length}`);
@@ -491,20 +486,18 @@ function drawTile() {
   let hx = HERO.getMx();
   let hy = HERO.getMy();
 
-  TILES.forEach(e => {
-    e.look = false;
-  });
+  TM.setUnLook();
   
   for(let y=-vh/2-1;y<vh/2 + 1;y++){
     for(let x=-vw/2-1;x<vw/2 + 1;x++){
-      let g = TILES.find(e=>e.mx == hx + x && e.my == hy+y)
+      let g = TM.get(hx + x, hy + y);
       if(g != undefined){        
         image(g.img,
               g.mx * TILE_PX * MAG.rate - HERO.x * MAG.rate + HW,
               g.my * TILE_PX * MAG.rate - HERO.y * MAG.rate + HH,
           int(TILE_PX * MAG.rate), int(TILE_PX * MAG.rate))
           g.look = true;
-      }else{
+      } else {
         //TILES.push(new CTile(hx + x, hy+y));
       }
     }
@@ -525,7 +518,7 @@ function drawHide() {
 
   for(let y=-vh/2-1;y<vh/2 + 1;y++){
     for(let x=-vw/2-1;x<vw/2 + 1;x++){
-      let g = TILES.find(e=>e.mx == hx + x && e.my == hy+y)
+      let g = TM.get(hx + x, hy + y);
       if(g != undefined){        
         if(g.show<255){
           if(dist(hx,hy,g.mx,g.my)<sight || g.show>0){
@@ -567,7 +560,7 @@ function drawMinimap(){
   
   for(let y=-vh/2-1;y<vh/2+1 ;y++){
     for(let x=-vw/2-1;x<vw/2+1 ;x++){
-      let g = TILES.find(e=>e.mx == hx + x && e.my == hy+y)
+      let g = TM.get(hx + x, hy + y);
       if(g != undefined){
         image(g.img,
               x*18 + wx + vw/2*18 - int(HERO.getDx()/16),
@@ -662,7 +655,7 @@ function CanMove(_x, _y, _ax, _ay) {
   let cy = int(((_y % TILE_PX) + TILE_PX) % TILE_PX / CELL_PX)
   let tcx = int(((_tx % TILE_PX) + TILE_PX) % TILE_PX / CELL_PX)
 
-  let g = GetTile(tmx, my);
+  let g = TM.get(tmx, my);
   if (g != undefined && _x != _tx){
     if(g.cells[cy][tcx] < _CAN_WALK){
       rx = _tx;
@@ -676,7 +669,7 @@ function CanMove(_x, _y, _ax, _ay) {
   cx = int(((rx % TILE_PX) + TILE_PX) % TILE_PX / CELL_PX)
   let tcy = int(((_ty % TILE_PX) + TILE_PX) % TILE_PX / CELL_PX)
   let tmy = floor(_ty / TILE_PX);
-  g = GetTile(mx, tmy);
+  g = TM.get(mx, tmy);
   if (g != undefined && _y != _ty){
     if(g.cells[tcy][cx] < _CAN_WALK){
       ry = _ty;

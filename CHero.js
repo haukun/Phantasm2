@@ -72,7 +72,7 @@ class CHero extends BCObject{
     this.r = atan2(mouseY - HH, mouseX - HW);
 
 
-    let g = GetTile(this.getMx(), this.getMy());
+    let g = TM.get(this.getMx(), this.getMy());
     switch (g.cells[this.getCy()][this.getCx()]) {
       case STAIR:
         MSG.send({ msg: MSG_REACH_STAIR });

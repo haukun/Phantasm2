@@ -23,9 +23,64 @@ const ROOM_EARTH = 13;
 const ROOM_STAIR = 80
 const ROOM_LIMIT = 99;
 
+class CTileManager {
+  constructor() {
+  }
+
+  init() {
+    this.TILES = [];
+    this.worldWidth = 0;
+    this.worldHeight = 0;
+  }
+
+  create(_w, _h) {
+    this.worldWidth = (_w + 4) * 2;
+    this.worldHeight = (_h + 4) * 2;
+
+    for (let y = 0; y <= this.worldHeight; y++){
+      this.TILES[y] = [];
+      for(let x = 0; x <= this.worldWidth; x++){
+        this.TILES[y][x] = new CTile(x - this.worldWidth  / 2, y - this.worldHeight / 2);
+      }
+    }
+  }
+
+  getRandomTile(_room) {
+    let loop = true;
+    while (loop) {
+      let rx = int(random(this.worldWidth));
+      let ry = int(random(this.worldHeight));
+      if (this.TILES[ry][rx].room == _room) {
+        loop = false;
+        return this.TILES[ry][rx];
+      }
+    }
+  }
+
+  setUnLook() {
+    for (let y = 0; y <= this.worldHeight; y++){
+      for (let x = 0; x <= this.worldWidth; x++){
+        this.TILES[y][x].look = false;
+      }
+    }
+  }
+
+  get(_mx, _my) {
+    let tx = _mx + this.worldWidth / 2;
+    let ty = _my + this.worldHeight / 2;
+
+    if (tx < 0 || this.worldWidth < tx ||
+      ty < 0 || this.worldHeight < ty) {
+      return undefined;
+    }
+    
+    return this.TILES[ty][tx];
+  }
+}
+
 
 function GetTile(_mx, _my){
-  return TILES.find(e=>e.mx == _mx && e.my == _my);
+  return this.get(_mx, _my);
 }
 
 class CTile{
