@@ -3,7 +3,11 @@ let TILE_PX;       // 1タイルのピクセル幅
 let CELL_COUNT;    // 1タイル内にあるセルの数
 let CELL_PX;       // 1セルのピクセル幅
 
-let TM;
+let TM; //  TileManager
+let SM; //  SceneManager
+
+let DI; //  DebugInfo
+
 let HERO;
 let MONSTERS = [];
 let MISSILES = [];
@@ -22,24 +26,11 @@ let HID = new CHID();
 
 let DAMAGE_EFFECT = 0;
 
-let MSG;;
+let MSG;
 
 let NOW_FLOOR;
 
-const SCENE_MAIN = 10;
-const SCENE_WILL_PAUSE = 20;
-const SCENE_PAUSING = 21;
-const SCENE_PAUSE = 25;
-const SCENE_WILL_GLOW = 30;
-const SCENE_GLOWING = 31;
-const SCENE_GLOW = 35;
-let SCENE;
-let SCENE_TIMER = 0;
-
-let PAUSE_CAPTURE;
-
 let SIGHT;
-let INPUTS;
 let TICK;
 //--------------------------------------------------
 //  setup
@@ -58,14 +49,15 @@ function setup() {
   CELL_PX = 36;
   TILE_PX = CELL_PX * CELL_COUNT;
 
-  SCENE = SCENE_MAIN;
-
   MAG = new CMag();
   HERO = new CHero();
   FRAME_RATE = new CFramerate();  
   MSG = new CMessage();
 
+  SM = new CSceneManager();
   TM = new CTileManager();
+
+  DI = new CDebugInfo();
 
   NOW_FLOOR = 0;
   INPUTS = {};
@@ -220,157 +212,9 @@ function init() {
 //  draw
 //--------------------------------------------------
 function draw() {
-  switch (SCENE) {
-    case SCENE_WILL_PAUSE:
-      PAUSE_CAPTURE = this.get();
-      SCENE = SCENE_PAUSING
-      SCENE_TIMER = 0;
-      break;
-    case SCENE_PAUSING:
-      background(0);
-      image(PAUSE_CAPTURE, 0, 0);
-      background(0, SCENE_TIMER / 60);
-      SCENE_TIMER++;
-      if (SCENE_TIMER > 30) {
-        SCENE = SCENE_PAUSE;
-      }
-      break;
-    case SCENE_PAUSE:
-      cursor();
-      background(0);
-      image(PAUSE_CAPTURE, 0, 0);
-      background(0, SCENE_TIMER / 60);
-      push();
-      stroke(0)
-      textSize(50);
-      textAlign(CENTER)
-      fill(255);
-      text("Press 'Q' to return to the game.", HW, HH);
-      pop();
-
-      if (keyIsDown(81)) {
-        SCENE = SCENE_MAIN;
-        noCursor();
-      }
-      break;
-    
-    case SCENE_WILL_GLOW:
-      PAUSE_CAPTURE = this.get();
-      SCENE = SCENE_GLOWING
-      SCENE_TIMER = 0;
-      HID.drawGlowCursor();
-      break;
-    case SCENE_GLOWING:
-      background(0);
-      image(PAUSE_CAPTURE, 0, 0);
-      background(0, SCENE_TIMER / 60);
-      SCENE_TIMER++;
-      if (SCENE_TIMER > 30) {
-        SCENE = SCENE_GLOW;
-        SCENE_TIMER = 0;
-      }
-      HID.drawGlowCursor();
-      break;
-    case SCENE_GLOW:
-      background(0);
-      image(PAUSE_CAPTURE, 0, 0);
-      background(0, 0.5);
-      sceneGlow();
-        break;
-    case SCENE_MAIN:
-      sceneMain();
-      break;
-  }
+  SM.act();
 }
 
-function sceneGlow() {
-  push()
-  SCENE_TIMER++;
-  rectMode(CENTER);
-  strokeWeight(5)
-  stroke(255)
-
-  let centerX = HW - (HERO.glows.length - 1) * 150;
-  for (let i = 0; i < HERO.glows.length; i++) {
-    let x = centerX + i * 300;
-    let y = HH + cos(min(SCENE_TIMER, 30) / 30 * PI / 2) * WH;
-    fill(0)
-    if (IsInner(mouseX, mouseY, x - 140, y - 200, 280, 400)) {
-      fill(30)
-    }
-    rect(x, y, 280, 400, 50)
-  }
-
-  HID.drawGlowCursor();
-
-  if (mouseIsPressed) {
-    if (mouseButton == LEFT) {
-      let isSelected = false;
-      for (let i = 0; i < HERO.glows.length; i++) {
-        let x = centerX + i * 300;
-        let y = HH + cos(min(SCENE_TIMER, 30) / 30 * PI / 2) * WH;
-        if (IsInner(mouseX, mouseY, x - 140, y - 200, 280, 400)) {
-          isSelected = true;
-          HERO.addSkill(i);
-          SCENE = SCENE_MAIN;
-        }
-      }
-      
-      if (!isSelected) {
-        SCENE = SCENE_MAIN;
-      }
-    }
-  }
-  pop();
-}
-
-function sceneMain() {
-  TICK++;
-  input();
-  background(0);
-
-  MAG.calc()
-  FRAME_RATE.calc()
-
-  drawTile()
-
-  push();
-  SIGHT.clear()
-  SIGHT.background(0, 200);
-  SIGHT.erase()
-  let sight_r = HW * MAG.rate * (0.5 + 1.5 * (min(HERO.fire, 50) / 50) ** 2);
-  SIGHT.circle(HW, HH, sight_r)
-
-  image(SIGHT, 0, 0)
-  fill(0, 0.01)
-  circle(HW, HH, sight_r);
-  drawingContext.clip()
-
-  drawMonster();
-  drawMissile();
-  drawChip();
-  hitCheck();
-
-  pop();
-
-  drawHide()
-  drawEffect();
-  drawBuild();
-  drawMinimap()
-
-  HERO.act()
-  HERO.draw()
-
-  postmortem();
-
-  drawDamage();
-
-  HID.draw();
-
-  dispatchMessage();
-
-  drawDebugInfo()
-}
 
 //--------------------------------------------------
 //  dispatchMessage
@@ -396,13 +240,16 @@ function dispatchMessage() {
         HID.elementalBreakTick = 60;
         break;
       case MSG_PAUSE:
-        SCENE = SCENE_WILL_PAUSE;
+        SM.pause();
         break;
       case MSG_GLOW:
-        SCENE = SCENE_WILL_GLOW;
+        SM.glow();
         break;
     }
   }
+
+  mouseWheelDown = false;
+  mouseWheelUp = false;
 }
 
 //--------------------------------------------------
@@ -429,77 +276,7 @@ function postmortem() {
   CHIPS = CHIPS.filter(e => e.live);
 }
 
-//--------------------------------------------------
-//  drawDebugInfo
-//--------------------------------------------------
-function drawDebugInfo(){
-  push()
 
-  noFill();
-  stroke(255);
-  textSize(12)
-  INPUTS.shift ? fill(255) : noFill();
-  rect(10, 150, 20, 10);
-  INPUTS.tab ? fill(255) : noFill();
-  rect(11, 120, 15, 10);
-  INPUTS.escape ? fill(255) : noFill();
-  rect(11, 110, 15, 8);
-  
-  INPUTS.w ? fill(255) : noFill();
-  rect(40, 120, 10, 10);
-  INPUTS.a ? fill(255) : noFill();
-  rect(30, 130, 10, 10);
-  INPUTS.s ? fill(255) : noFill();
-  rect(40, 130, 10, 10);
-  INPUTS.d ? fill(255) : noFill();
-  rect(50, 130, 10, 10);
-  INPUTS.q ? fill(255) : noFill();
-  rect(30, 120, 10, 10);
-  INPUTS.e ? fill(255) : noFill();
-  rect(50, 120, 10, 10);
-  INPUTS.space ? fill(255) : noFill();
-  rect(40, 160, 30, 10);
-
-  INPUTS.wheelu ? fill(255) : noFill();
-  rect(81, 120, 4, 4)
-  INPUTS.wheeld ? fill(255) : noFill();
-  rect(81, 124, 4, 4)
-
-  INPUTS.lclick ? fill(255) : noFill();
-  arc(80, 130, 10, 20, PI , PI / 2 * 3, PIE)
-  INPUTS.rclick ? fill(255) : noFill();
-  arc(85, 130, 10, 20, PI / 2 * 3, TAU, PIE)
-  noFill()
-  arc(83, 130, 16, 20, 0, PI, PIE)
-
-  stroke(0)
-  fill(255)
-  textSize(12)
-
-  let texts = [];
-
-  texts.push(`Frame: ${FRAME_RATE.rate} MAX: ${FRAME_RATE.max} MIN:${FRAME_RATE.min}`)
-  texts.push(`TILES  : ${ TM.TILES.length }`);
-  texts.push(`MONSTER: ${MONSTERS.length}`);
-  texts.push(`MISSILE: ${MISSILES.length}`);
-  texts.push(`BUILD  : ${BUILDS.length}`);
-  texts.push(`CHIP   : ${CHIPS.length}`);
-  texts.push(`EFFECT : ${EFFECTS.length}`);
-
-  let hx = HERO.getMx();
-  let hy = HERO.getMy();
-  let cx = HERO.getCx();
-  let cy = HERO.getCy();
-  
-  texts.push(`POS:${NOW_FLOOR}F M(${hx},${hy}) C(${cx},${cy}) P(${HERO.x},${HERO.y}) D(${HERO.getDx()},${HERO.getDy()})`);
-  texts.push(`MS:(${mouseX},${mouseY})`)
-  texts.push(`MAG:(${MAG.rate})`)
-
-  for (let i = 0; i < texts.length; i++) {
-    text(texts[i], 10, i * 20 + 200)
-  }
-  pop()
-}
 
 //--------------------------------------------------
 //  drawMonster
@@ -830,4 +607,15 @@ function CanMove(_x, _y, _ax, _ay) {
   }
 
   return [rx, ry, result];
+}
+
+
+let mouseWheelDown = false;
+let mouseWheelUp = false;
+function mouseWheel(event) {
+  if (event.delta > 0) {
+    mouseWheelDown = true;
+  } else if (event.delta < 0) {
+    mouseWheelUp = true;
+  }
 }
