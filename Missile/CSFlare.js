@@ -58,12 +58,16 @@ class CSFlare extends BCCollidableObject {
         circle(0, 0, this.l * 0.6 * MAG.rate);
     }
 
-    static drawIcon() {
+    static drawIcon(addLevel = 0) {
+        push();
         fill(0, 90, 90);
         circle(0, 0, 25);
         fill(20, 70, 90);
         circle(0, 0, 25 * 0.7);
         fill(40, 40, 90);
         circle(0, 0, 25 * 0.6);
+        pop();
+        textAlign(RIGHT);
+        text(HERO.skill_flare + addLevel, 15, 15);
     }
 }

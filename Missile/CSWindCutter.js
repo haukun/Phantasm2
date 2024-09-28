@@ -48,10 +48,17 @@ class CSWindCutter extends BCCollidableObject {
         arc(0, 0, 60 * MAG.rate, 60 * MAG.rate, this.r - PI / 6, this.r + PI / 6, CHORD);
     }
 
-    static drawIcon() {
+    static drawIcon(addLevel = 0) {
+        push();
         strokeWeight(5)
         stroke(150, 90, 90)
         fill(150, 60, 90);
-        arc(-10, 10, 40, 40, -PI/4 - PI / 6, -PI/4 + PI / 6, CHORD);
+        arc(-10, -12, 40, 40, PI / 4 - PI / 6, PI / 4 + PI / 6, CHORD);
+        pop();
+        fill(255, 0.5);
+        rect(20, 20, 10)
+        textAlign(RIGHT);
+        text(HERO.skill_wind_cutter + addLevel, 15, 15);
+
     }
 }

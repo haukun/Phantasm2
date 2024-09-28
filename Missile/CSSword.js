@@ -59,7 +59,8 @@ class CSSword extends BCCollidableObject {
             10 * MAG.rate);
     }
 
-    static drawIcon() {
+    static drawIcon(addLevel = 0) {
+        push()
         stroke(60, 100, 100);
         fill(60, 80, 80)
         rotate(-PI/4);
@@ -71,5 +72,8 @@ class CSSword extends BCCollidableObject {
             0,
             5,
             10);
+        pop()
+        textAlign(RIGHT)
+        text(HERO.skill_phantasmal_sword + addLevel, 15, 15);
     }
 }

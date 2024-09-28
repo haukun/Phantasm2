@@ -215,12 +215,25 @@ class CHero extends BCObject{
 
   addSkill(index) {
     switch (this.glows[index]) {
-      case CHero.GLOW_WIND_CUTTER:
-        this.skill_wind_cutter++;
-        if (this.equips.length == 1) {
-          this.equips[1] = CHero.WIND_CUTTER;
+      case CHero.GLOW_PHANTASMAL_SWORD:
+        this.skill_phantasmal_sword++;
+        if (this.skill_phantasmal_sword == 1 && this.equips.length < 3) {
+          this.equips[this.equips.length] = CHero.PHANTASMAL_SWORD;
         }
         break;
+      case CHero.GLOW_WIND_CUTTER:
+        this.skill_wind_cutter++;
+        if (this.skill_wind_cutter == 1 && this.equips.length < 3) {
+          this.equips[this.equips.length] = CHero.WIND_CUTTER;
+        }
+        break;
+      case CHero.GLOW_FLARE:
+        this.skill_flare++;
+        if (this.skill_flare == 1 && this.equips.length < 3) {
+          this.equips[this.equips.length] = CHero.FLARE;
+        }
+        break;
+    
     }
 
     HERO.max_life += 5;
@@ -249,7 +262,7 @@ class CHero extends BCObject{
             switch (this.elements[0]) {
               case CCElement.FIRE:
                 //candidates.push(GLOW_FIRE);
-                //candidates.push(GLOW_FLARE);
+                candidates.push(CHero.GLOW_FLARE);
                 //candidates.push(GLOW_RUNE_POWER_UP);
                 break;
               case CCElement.WATER:
@@ -266,7 +279,7 @@ class CHero extends BCObject{
                 break;
               case CCElement.EARTH:
                 //candidates.push(GLOW_EARTH);
-                //candidates.push(GLOW_PHANTASMAL_SWORD);
+                candidates.push(CHero.GLOW_PHANTASMAL_SWORD);
                 //if (this.skill_rune_teleport <= 3) {
                 //  candidates.push(GLOW_RUNE_TELEPORT);
                // }
@@ -280,5 +293,26 @@ class CHero extends BCObject{
         }
         break;
     }
+  }
+
+  getGlowInfo(_e) {
+    var func;
+    var exp;
+    switch (_e) {
+      case CHero.GLOW_PHANTASMAL_SWORD:
+        func = CSSword.drawIcon;
+        exp = "Phantasmal Sword";
+        break;
+      case CHero.GLOW_WIND_CUTTER:
+        func = CSWindCutter.drawIcon;
+        exp = "Wind Cutter";
+        break;
+      case CHero.GLOW_FLARE:
+        func = CSFlare.drawIcon;
+        exp = "Flare";
+        break;
+      }
+
+    return [func, exp];
   }
 }

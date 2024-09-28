@@ -11,31 +11,50 @@ class CSceneGlow extends BCSCene {
 
     act() {
         this.tick++;
+        push();
         image(this.backPicture, 0, 0);
         background(0, min(this.tick, 30) / 60);
-
-        push()
         rectMode(CENTER);
-        strokeWeight(5)
-        stroke(255)
+
       
         let centerX = HW - (HERO.glows.length - 1) * 150;
         for (let i = 0; i < HERO.glows.length; i++) {
-          let x = centerX + i * 300;
-          let y = HH + cos(min(this.tick, 30) / 30 * PI / 2) * WH;
-          fill(0)
-          if (IsInner(mouseX, mouseY, x - 140, y - 200, 280, 400)) {
-            fill(30)
-          }
-          rect(x, y, 280, 400, 50)
+            let x = centerX + i * 300;
+            let y = HH + cos(min(this.tick, 30) / 30 * PI / 2) * WH;
+            
+            push()
+            strokeWeight(5)
+            stroke(255)
+                fill(0)
+            if (IsInner(mouseX, mouseY, x - 140, y - 200, 280, 400)) {
+                fill(30)
+            }
+            rect(x, y, 280, 400, 50)
+            pop();
+
+            let func, exp;
+            [func, exp] = HERO.getGlowInfo(HERO.glows[i]);
+            push();
+            translate(x, y - 100);
+            push()
+            func(1);
+            pop()
+            strokeWeight(1);
+            stroke(0);
+            fill(255);
+            textAlign(CENTER);
+            textSize(32)
+            text(exp, 0, 100)
+            pop();
         }
       
+        push()
         HID.drawGlowCursor();
-      
-
         pop();
+
   
         this.input();
+        pop();
     }
 
     input() {
