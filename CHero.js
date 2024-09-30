@@ -56,6 +56,11 @@ class CHero extends BCObject{
 
     this.equips = [];
     this.equipNum = 0;
+
+    this.equips.push(CHero.PHANTASMAL_SWORD,
+      //CHero.WIND_CUTTER,
+      //CHero.FLARE
+    );  
   }
 
   init(obj) {

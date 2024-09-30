@@ -55,8 +55,6 @@ class CSWindCutter extends BCCollidableObject {
         fill(150, 60, 90);
         arc(-10, -12, 40, 40, PI / 4 - PI / 6, PI / 4 + PI / 6, CHORD);
         pop();
-        fill(255, 0.5);
-        rect(20, 20, 10)
         textAlign(RIGHT);
         text(HERO.skill_wind_cutter + addLevel, 15, 15);
 

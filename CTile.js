@@ -45,6 +45,174 @@ class CTileManager {
     }
   }
 
+  createRoomMap() {
+    let maps = [];
+
+    for (let y = 0; y <= this.worldHeight; y++) {
+      maps[y] = [];
+      for (let x = 0; x <= this.worldWidth; x++) {
+        maps[y][x] = -1;
+      }
+    }
+
+    for (let cy = 0; cy <= this.worldHeight; cy++) {
+      maps[cy][0] = 0;
+      maps[cy][this.worldWidth] = 0;
+    }
+    for (let cx = 0; cx <= this.worldWidth; cx++) {
+      maps[0][cx] = 0;
+      maps[this.worldHeight][cx] = 0;
+    }
+
+    maps[this.worldHeight / 2][this.worldWidth / 2] = 1;
+
+    let tx = this.worldWidth / 2;
+    let ty = this.worldHeight / 2;
+    for (let i = 0; i < (this.worldWidth + this.worldHeight) / 2; i++) {
+      let d = int(random(4));
+      switch (d) {
+        case 0:
+          if (tx > 1) {
+            tx -= 1;
+          }
+          break;
+        case 1:
+          if (tx < this.worldWidth - 1) {
+            tx += 1;
+          }
+          break;
+        case 2:
+          if (ty > 1) {
+            ty -= 1;
+          }
+          break;
+        case 3:
+          if (ty < this.worldHeight - 1) {
+            ty += 1;
+          }
+          break;
+      }
+      maps[ty][tx] = 2;
+    }
+    
+    maps[ty][tx] = 3;
+
+    let roomNumber = 4;
+    let isLoop = true;
+    while (isLoop) {
+      let tx = int(random(this.worldWidth - 1) + 1);
+      let ty = int(random(this.worldHeight - 1) + 1);
+
+      if (maps[ty][tx] == -1) {
+        maps[ty][tx] = roomNumber++;
+      }
+      if (maps[ty][tx] > 3) {
+        for (let j = 0; j < 2; j++) {
+          let nx = tx;
+          let ny = ty;
+
+          for (let i = 0; i < 6; i++) {
+            let direction = int(random(4));
+
+            switch (direction) {
+              case 0:
+                nx++;
+                break;
+              case 1:
+                nx--;
+                break;
+              case 2:
+                ny++;
+                break;
+              case 3:
+                ny--;
+                break;
+            }
+
+            if (0 <= nx && nx <= this.worldWidth && 0 <= ny && ny <= this.worldHeight) {
+              if (maps[ny][nx] == -1) {
+                maps[ny][nx] = maps[ty][tx];
+              }
+            } else {
+            }
+          }
+        }
+      }
+      
+      let remain = false;
+      for (let y = 0; y <= this.worldHeight; y++) {
+        for (let x = 0; x <= this.worldWidth; x++) {
+          if (maps[y][x] == -1) {
+            remain = true;
+          }
+        }
+      }
+
+      if (remain) {
+        isLoop = true;
+      } else {
+        isLoop = false;
+      }
+    }
+
+    for (let y = 0; y <= this.worldHeight; y++) {
+      for (let x = 0; x <= this.worldWidth; x++) {
+        if (maps[y][x] == 0) {
+          this.TILES[y][x].room = ROOM_LIMIT;
+        } else if (maps[y][x] == 3) {
+          let sx = int(random(6)) + 1;
+          let sy = int(random(6)) + 1;
+          this.TILES[y][x].room = ROOM_STAIR;
+          this.TILES[y][x].stair = { x: sx, y: sy };
+          this.TILES[y][x].cells[sy][sx] = STAIR;
+        } else if (maps[y][x] > 4) {
+          this.TILES[y][x].room = ROOM_NORMAL;
+          if (maps[y - 1][x] != maps[y][x]) {
+            for (let cx = 0; cx < CELL_COUNT; cx++) {
+              this.TILES[y][x].cells[0][cx] = WALL;
+            }
+            if (1 < y && y < this.worldHeight && random(1) < 0.4) {
+              let road = int(random(CELL_COUNT - 3) + 1);
+              this.TILES[y][x].cells[0][road] = FLOOR;
+              this.TILES[y][x].cells[0][road+1] = FLOOR;
+              this.TILES[y - 1][x].cells[7][road] = FLOOR;
+              this.TILES[y - 1][x].cells[7][road+1] = FLOOR;
+            }
+          }
+          if (maps[y + 1][x] != maps[y][x]) {
+            for (let cx = 0; cx < CELL_COUNT; cx++) {
+              this.TILES[y][x].cells[7][cx] = WALL;
+            }
+          }
+          if (maps[y][x - 1] != maps[y][x]) {
+            for (let cy = 0; cy < CELL_COUNT; cy++) {
+              this.TILES[y][x].cells[cy][0] = WALL;
+            }
+            if (1 < x && y < this.worldWidth && random(1) < 0.4) {
+              let road = int(random(CELL_COUNT - 3) + 1);
+              this.TILES[y][x].cells[road][0] = FLOOR;
+              this.TILES[y][x].cells[road+1][0] = FLOOR;
+              this.TILES[y][x - 1].cells[road][7] = FLOOR;
+              this.TILES[y][x - 1].cells[road+1][7] = FLOOR;
+            }
+          }
+          if (maps[y][x + 1] != maps[y][x]) {
+            for (let cy = 0; cy < CELL_COUNT; cy++) {
+              this.TILES[y][x].cells[cy][7] = WALL;
+            }
+          }
+        }
+      }
+    }
+
+    for (let y = 0; y <= this.worldHeight; y++) {
+      for (let x = 0; x <= this.worldWidth; x++) {
+
+        this.TILES[y][x].redraw();
+      }
+    }
+}
+  
   getRandomTile(_room) {
     let loop = true;
     while (loop) {
@@ -105,7 +273,7 @@ class CTile{
           _my > 3 + NOW_FLOOR * 2) {
           type = LIMIT;    
           show = 255;
-          room = ROOM_LIMIT;
+          //room = ROOM_LIMIT;
         }
         else if(abs(abs(_mx) + abs(_my)) < 2){
           type = FLOOR;                  
@@ -114,6 +282,7 @@ class CTile{
         if(type == UNKNOWN){
           type = FLOOR;
           
+          /*
           let wall1 = noise((_mx*TILE_PX + cx*CELL_PX)/1000 + FAR,
                             (_my*TILE_PX + cy*CELL_PX)/1000 + FAR)
           let wall2 = noise((_mx*TILE_PX + cx*CELL_PX)/1000 + FAR,
@@ -124,6 +293,10 @@ class CTile{
           if(wall1%.2 > .18 || wall2%.1 > .085 || wall3 > 0.6){
             //type = WALL;
           }      
+          */
+          
+
+
           if(abs(_mx) < 1 && abs(_my)< 1 ){
             type = FLOOR;
           }
@@ -133,6 +306,8 @@ class CTile{
         cells[cy][cx] = type;
       }
     }
+
+
     this.img.pop();
     
     this.show = show;
@@ -153,7 +328,7 @@ class CTile{
   //  redraw
   //--------------------------------------------------
   redraw(){
-    randomSeed(this.seed);
+    //randomSeed(this.seed);
     this.img.push();
     this.img.noStroke();
 

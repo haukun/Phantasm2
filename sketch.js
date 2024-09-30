@@ -91,6 +91,7 @@ function init() {
   HERO.init();
 
   TM.create(NOW_FLOOR * 2, NOW_FLOOR * 2);
+  TM.createRoomMap();
 
   
   CHIPS.push(new CCElement({x: 50, y:10, element:CCElement.FIRE}));
@@ -147,6 +148,7 @@ function init() {
   }
   
 
+  /*
   let g = TM.getRandomTile(ROOM_NORMAL);
   let tx = int(random(CELL_COUNT));
   let ty = int(random(CELL_COUNT));
@@ -186,7 +188,7 @@ function init() {
   earth.cells[ty][tx] = EARTH;
   fire.room = ROOM_EARTH;
   earth.redraw();
-
+*/
   /*
   for (let r = 0; r < TAU; r += PI / 12) {
     MONSTERS.push(new CMMouse({ x: 144 + cos(r) * 150, y: 144 + sin(r) * 150 }));
@@ -252,138 +254,8 @@ function dispatchMessage() {
   mouseWheelUp = false;
 }
 
-//--------------------------------------------------
-//  drawDamage
-//--------------------------------------------------
-function drawDamage() {
-  if (DAMAGE_EFFECT > 0) {
-    background(0, 100, 80, DAMAGE_EFFECT / 20)
-    DAMAGE_EFFECT--;
-  }
 
 
-}
-
-
-//--------------------------------------------------
-//  postmortem
-//--------------------------------------------------
-function postmortem() {
-  MONSTERS = MONSTERS.filter(e => e.live);
-  MISSILES = MISSILES.filter(e => e.live);
-  EFFECTS = EFFECTS.filter(e => e.live);
-  BUILDS = BUILDS.filter(e => e.live);
-  CHIPS = CHIPS.filter(e => e.live);
-}
-
-
-
-//--------------------------------------------------
-//  drawMonster
-//--------------------------------------------------
-function drawMonster(){
-  MONSTERS.forEach(e => {
-    e.doAct();
-  });
-  
-  MONSTERS.forEach(e => {
-    e.doDraw();
-  });
-}
-
-//--------------------------------------------------
-//  drawMissile
-//--------------------------------------------------
-function drawMissile(){
-  MISSILES.forEach(e => {
-    e.doAct();
-  });
-  
-  MISSILES.forEach(e => {
-    e.doDraw();
-  });
-}
-
-//--------------------------------------------------
-//  drawChip
-//--------------------------------------------------
-function drawChip(){
-  CHIPS.forEach(e => {
-    e.doAct();
-  });
-  
-  CHIPS.forEach(e => {
-    e.doDraw();
-  });
-}
-
-//--------------------------------------------------
-//  drawBuild
-//--------------------------------------------------
-function drawBuild(){
-  BUILDS.forEach(e => {
-    e.doAct();
-  });
-  
-  BUILDS.forEach(e => {
-    e.doDraw();
-  });
-}
-
-//--------------------------------------------------
-//  drawEffect
-//--------------------------------------------------
-function drawEffect() {
-  push()
-  rectMode(CENTER);
-  blendMode(ADD);
-  EFFECTS.forEach(e => {
-    e.doAct();
-  });
-  
-  EFFECTS.forEach(e => {
-    e.doDraw();
-  });
-  pop()
-}
-//--------------------------------------------------
-//  hitCheck
-//--------------------------------------------------
-function hitCheck() {
-  MONSTERS.forEach(m => {
-    MISSILES.forEach(s => {
-      if (s.evil == false) {
-        if (abs(m.getMx() - s.getMx()) < 1 && abs(m.getMy() - s.getMy()) < 1) {
-          if (!m.memory.includes(s.id)) {
-            if (dist(m.x, m.y, s.x, s.y) < m.l + s.l) {
-              m.hits.push(s);
-              s.hits.push(m);
-              m.memory.push(s.id);
-            }
-          }
-        }
-      }
-    })
-  })
-
-  MISSILES.forEach(c => {
-    if (c.evil == true) {
-      if (abs(HERO.getMx() - c.getMx()) < 1 && abs(HERO.getMy() - c.getMy()) < 1) {
-        if (dist(HERO.x, HERO.y, c.x, c.y) < 10 + c.l) {
-          c.hits.push(HERO);
-        }
-      }
-    }
-  })
-
-  CHIPS.forEach(c => {
-    if (abs(HERO.getMx() - c.getMx()) < 1 && abs(HERO.getMy() - c.getMy()) < 1) {
-      if (dist(HERO.x, HERO.y, c.x, c.y) < 10 + c.l) {
-        c.hits.push(HERO);
-      }
-    }
-  })
-}
 
 //--------------------------------------------------
 //  drawMap
