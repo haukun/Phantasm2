@@ -16,6 +16,7 @@ const _EXTRACT = 340
 const LIMIT = 999
 
 const ROOM_NORMAL = 1;
+const ROOM_WALL = 2;
 const ROOM_FIRE = 10;
 const ROOM_WATER = 11;
 const ROOM_AIR = 12;
@@ -48,155 +49,187 @@ class CTileManager {
   createRoomMap() {
     let maps = [];
 
+    //  マップに-1を設定
     for (let y = 0; y <= this.worldHeight; y++) {
       maps[y] = [];
       for (let x = 0; x <= this.worldWidth; x++) {
-        maps[y][x] = -1;
+        maps[y][x] = {};
+        maps[y][x].type = -1;
       }
     }
 
+    //  限界壁に0を設定
     for (let cy = 0; cy <= this.worldHeight; cy++) {
-      maps[cy][0] = 0;
-      maps[cy][this.worldWidth] = 0;
+      maps[cy][0].type = 0;
+      maps[cy][this.worldWidth].type = 0;
     }
     for (let cx = 0; cx <= this.worldWidth; cx++) {
-      maps[0][cx] = 0;
-      maps[this.worldHeight][cx] = 0;
+      maps[0][cx].type = 0;
+      maps[this.worldHeight][cx].type = 0;
     }
 
-    maps[this.worldHeight / 2][this.worldWidth / 2] = 1;
+    //  中心を1に設定
+    maps[this.worldHeight / 2][this.worldWidth / 2].type = 1;
 
-    let tx = this.worldWidth / 2;
-    let ty = this.worldHeight / 2;
-    for (let i = 0; i < (this.worldWidth + this.worldHeight) / 2; i++) {
-      let d = int(random(4));
-      switch (d) {
-        case 0:
-          if (tx > 1) {
-            tx -= 1;
-          }
-          break;
-        case 1:
-          if (tx < this.worldWidth - 1) {
-            tx += 1;
-          }
-          break;
-        case 2:
-          if (ty > 1) {
-            ty -= 1;
-          }
-          break;
-        case 3:
-          if (ty < this.worldHeight - 1) {
-            ty += 1;
-          }
-          break;
+    //中心から道を2本引き3を設定
+    for (let j = 0; j < 2; j++) {
+      let tx = this.worldWidth / 2;
+      let ty = this.worldHeight / 2;
+      for (let i = 0; i < (this.worldWidth + this.worldHeight) / 2; i++) {
+        let d = int(random(4));
+        switch (d) {
+          case 0:
+            if (tx > 1) {
+              tx -= 1;
+            }
+            break;
+          case 1:
+            if (tx < this.worldWidth - 1) {
+              tx += 1;
+            }
+            break;
+          case 2:
+            if (ty > 1) {
+              ty -= 1;
+            }
+            break;
+          case 3:
+            if (ty < this.worldHeight - 1) {
+              ty += 1;
+            }
+            break;
+        }
+        maps[ty][tx].type = 3;
       }
-      maps[ty][tx] = 2;
+
+      if (j == 1) {
+        //  階段タイルに2を設定
+        maps[ty][tx].type = 2;
+      }
     }
     
-    maps[ty][tx] = 3;
-
     let roomNumber = 4;
     let isLoop = true;
+    let offset = min(this.worldWidth, this.worldHeight);
+    let loopGuard = 0;
     while (isLoop) {
-      let tx = int(random(this.worldWidth - 1) + 1);
-      let ty = int(random(this.worldHeight - 1) + 1);
+      let tx = int(random(this.worldWidth - 1 - offset) + 1 + int(offset / 2));
+      let ty = int(random(this.worldHeight - 1 - offset) + 1 + int(offset / 2));
+      let gen = false;
 
-      if (maps[ty][tx] == -1) {
-        maps[ty][tx] = roomNumber++;
-      }
-      if (maps[ty][tx] > 3) {
+      if (maps[ty][tx].type > 2) {
         for (let j = 0; j < 2; j++) {
+          let jgen = false;
           let nx = tx;
           let ny = ty;
 
-          for (let i = 0; i < 6; i++) {
+          for (let i = 0; i < (this.worldWidth + this.worldHeight) / 2; i++) {
             let direction = int(random(4));
+            let sx = nx;
+            let sy = ny;
 
             switch (direction) {
               case 0:
-                nx++;
+                sx++;
                 break;
               case 1:
-                nx--;
+                sx--;
                 break;
               case 2:
-                ny++;
+                sy++;
                 break;
               case 3:
-                ny--;
+                sy--;
                 break;
             }
 
-            if (0 <= nx && nx <= this.worldWidth && 0 <= ny && ny <= this.worldHeight) {
-              if (maps[ny][nx] == -1) {
-                maps[ny][nx] = maps[ty][tx];
+            if (1 <= sx && sx < this.worldWidth && 1 <= sy && sy < this.worldHeight) {
+              if (maps[sy][sx].type == -1) {
+                nx = sx;
+                ny = sy;
+                maps[ny][nx].type = roomNumber;
+                if (jgen == false) {
+                  maps[ny][nx].road = true;
+                  maps[ny][nx].roadd = direction;
+                }
+                jgen = true;
+              } else {
+                
               }
-            } else {
             }
           }
+
+          gen |= jgen;
         }
       }
       
       let remain = false;
       for (let y = 0; y <= this.worldHeight; y++) {
         for (let x = 0; x <= this.worldWidth; x++) {
-          if (maps[y][x] == -1) {
+          if (maps[y][x].type == -1) {
             remain = true;
           }
         }
       }
 
-      if (remain) {
+      if (remain && (offset > 0 || random(1) < .9)) {
         isLoop = true;
       } else {
         isLoop = false;
       }
+      if (gen) {
+        roomNumber++;
+        offset = max(0, offset - 1);
+      }
+      if (loopGuard > 10) {
+        loopGuard = 0
+        offset = max(0, offset - 1);
+      }
+      loopGuard++;
     }
+    
 
+    //  マップの内容に基づきタイル情報を構築
     for (let y = 0; y <= this.worldHeight; y++) {
       for (let x = 0; x <= this.worldWidth; x++) {
-        if (maps[y][x] == 0) {
+        if (maps[y][x].type == 0) {
           this.TILES[y][x].room = ROOM_LIMIT;
-        } else if (maps[y][x] == 3) {
+        } else if (maps[y][x].type == 2) {
           let sx = int(random(6)) + 1;
           let sy = int(random(6)) + 1;
           this.TILES[y][x].room = ROOM_STAIR;
           this.TILES[y][x].stair = { x: sx, y: sy };
           this.TILES[y][x].cells[sy][sx] = STAIR;
-        } else if (maps[y][x] > 4) {
+        } else if (maps[y][x].type == -1) {
+          this.TILES[y][x].room = ROOM_WALL;
+          for (let cy = 0; cy < CELL_COUNT; cy++) {
+            for (let cx = 0; cx < CELL_COUNT; cx++) {
+              this.TILES[y][x].cells[cy][cx] = WALL;
+            }
+          }
+        }
+
+        //  タイルデバッグ情報
+        //this.TILES[y][x]._dmap = maps[y][x];
+
+        if (maps[y][x].type > 2) {
           this.TILES[y][x].room = ROOM_NORMAL;
-          if (maps[y - 1][x] != maps[y][x]) {
+          if (maps[y - 1][x].type != maps[y][x].type && maps[y - 1][x].type > 2) {
             for (let cx = 0; cx < CELL_COUNT; cx++) {
               this.TILES[y][x].cells[0][cx] = WALL;
             }
-            if (1 < y && y < this.worldHeight && random(1) < 0.4) {
-              let road = int(random(CELL_COUNT - 3) + 1);
-              this.TILES[y][x].cells[0][road] = FLOOR;
-              this.TILES[y][x].cells[0][road+1] = FLOOR;
-              this.TILES[y - 1][x].cells[7][road] = FLOOR;
-              this.TILES[y - 1][x].cells[7][road+1] = FLOOR;
-            }
           }
-          if (maps[y + 1][x] != maps[y][x]) {
+          if (maps[y + 1][x].type != maps[y][x].type && maps[y + 1][x].type > 2) {
             for (let cx = 0; cx < CELL_COUNT; cx++) {
               this.TILES[y][x].cells[7][cx] = WALL;
             }
           }
-          if (maps[y][x - 1] != maps[y][x]) {
+          if (maps[y][x - 1].type != maps[y][x].type && maps[y][x - 1].type > 2) {
             for (let cy = 0; cy < CELL_COUNT; cy++) {
               this.TILES[y][x].cells[cy][0] = WALL;
             }
-            if (1 < x && y < this.worldWidth && random(1) < 0.4) {
-              let road = int(random(CELL_COUNT - 3) + 1);
-              this.TILES[y][x].cells[road][0] = FLOOR;
-              this.TILES[y][x].cells[road+1][0] = FLOOR;
-              this.TILES[y][x - 1].cells[road][7] = FLOOR;
-              this.TILES[y][x - 1].cells[road+1][7] = FLOOR;
-            }
           }
-          if (maps[y][x + 1] != maps[y][x]) {
+          if (maps[y][x + 1].type != maps[y][x].type && maps[y][x + 1].type > 2) {
             for (let cy = 0; cy < CELL_COUNT; cy++) {
               this.TILES[y][x].cells[cy][7] = WALL;
             }
@@ -207,7 +240,69 @@ class CTileManager {
 
     for (let y = 0; y <= this.worldHeight; y++) {
       for (let x = 0; x <= this.worldWidth; x++) {
+        if (maps[y][x].road == true) {
+          let ci = int(random(6)) + 1;
+          switch (maps[y][x].roadd) {
+            case 0:
+              this.TILES[y][x].cells[ci][0] = FLOOR;
+              this.TILES[y][x - 1].cells[ci][7] = FLOOR;
+              break;
+            case 1:
+              this.TILES[y][x].cells[ci][7] = FLOOR;
+              this.TILES[y][x + 1].cells[ci][0] = FLOOR;
+              break;
+            case 2:
+              this.TILES[y][x].cells[0][ci] = FLOOR;
+              this.TILES[y - 1][x].cells[7][ci] = FLOOR;
+              break;
+            case 3:
+              this.TILES[y][x].cells[7][ci] = FLOOR;
+              this.TILES[y + 1][x].cells[0][ci] = FLOOR;
+              break;
+          }
+        } else {
+          if (x > 0 && x < this.worldWidth && y > 0 && y < this.worldHeight) {
+            if (maps[y][x].type > 2 && maps[y][x].road == false) {
+              let tx = x;
+              let ty = y;
+              let direction = int(random(4));
+              let ci = int(random(6)) + 1;
+              switch (direction) {
+                case 0:
+                  if (maps[y][x].type != maps[y][x + 1] && this.TILES[y][x].cells[ci][7] == WALL) {
+                    this.TILES[y][x].cells[ci][7] = FLOOR;
+                    this.TILES[y][x + 1].cells[ci][0] = FLOOR;
+                  }
+                  break;
+                case 1:
+                  if (maps[y][x].type != maps[y][x - 1] && this.TILES[y][x].cells[ci][0] == WALL) {
+                    this.TILES[y][x].cells[ci][0] = FLOOR;
+                    this.TILES[y][x - 1].cells[ci][7] = FLOOR;
+                  }
+                  break;
+                case 2:
+                  if (maps[y][x].type != maps[y + 1][x] && this.TILES[y][x].cells[7][ci] == WALL) {
+                    this.TILES[y][x].cells[7][ci] = FLOOR;
+                    this.TILES[y + 1][x].cells[0][ci] = FLOOR;
+                  }
+                  break;
+                  break;
+                case 3:
+                  if (maps[y][x].type != maps[y - 1][x] && this.TILES[y][x].cells[0][ci] == WALL) {
+                    this.TILES[y][x].cells[0][ci] = FLOOR;
+                    this.TILES[y - 1][x].cells[7][ci] = FLOOR;
+                  }
+                  break;
+              }
+            }
+          }
+        }
+      }
+    }
 
+    for (let y = 0; y <= this.worldHeight; y++) {
+      for (let x = 0; x <= this.worldWidth; x++) {
+        //this.TILES[y][x].show = 255;
         this.TILES[y][x].redraw();
       }
     }
@@ -447,6 +542,15 @@ class CTile{
     //target.g.noFill()
     //target.g.stroke(0)
     //target.g.rect(0,0,EDGE)
+    if (this._dmap) {
+      this.img.textSize(32);
+      this.img.fill(0);
+      this.img.stroke(255)
+      this.img.text(this._dmap.type, 50, 50);
+      this.img.text(this._dmap.road, 50, 70);
+      this.img.text(this._dmap.roadd, 50, 90);
+    }
+      
     this.img.pop()
   }
 }
