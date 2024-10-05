@@ -17,6 +17,7 @@ class CSceneManager {
         if (this.wasCallback) {
             this.wasCallback = false;
             this.subScene = undefined;
+            this.mainScene.awake();
         }
 
         if (this.subScene == undefined) {
@@ -38,6 +39,11 @@ class CSceneManager {
     glow() {
         this.wasCallback = false;
         this.subScene = new CSceneGlow(this.callback.bind(this));
+    }
+
+    debugCommand() {
+        this.wasCallback = false;
+        this.subScene = new CSceneDebugCommand(this.callback.bind(this));
     }
 
 }

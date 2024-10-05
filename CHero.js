@@ -293,7 +293,6 @@ class CHero extends BCObject{
             candidates.forEach(c => {
               this.glows.push(c);
             });
-            print(this.glows.length);
           }
         }
         break;

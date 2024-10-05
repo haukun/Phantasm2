@@ -32,6 +32,7 @@ let NOW_FLOOR;
 
 let SIGHT;
 let TICK;
+
 //--------------------------------------------------
 //  setup
 //--------------------------------------------------
@@ -110,10 +111,6 @@ function init() {
   CHIPS.push(new CCElement({ x: 170, y: 90, element: CCElement.EARTH }));
 
   
-  HERO.equips.push(CHero.PHANTASMAL_SWORD,
-    //CHero.WIND_CUTTER,
-    //CHero.FLARE
-  );
 
 
   for (let y = 0; y < TM.worldHeight; y++) {
@@ -246,6 +243,9 @@ function dispatchMessage() {
         break;
       case MSG_GLOW:
         SM.glow();
+        break;
+      case MSG_DEBUG_COMMAND:
+        SM.debugCommand();
         break;
     }
   }
