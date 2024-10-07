@@ -10,7 +10,7 @@ class CSceneMain extends BCSCene{
     this.willWheelDown = false;
     this.tabReleased = false;
     this.escapeReleased = false;
-    this.mouseReleased = false;
+    this.mouseReleased = true;
     this.enterReleased = false;
     keyCode = 0;
   }
